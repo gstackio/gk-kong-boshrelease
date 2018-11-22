@@ -72,7 +72,7 @@ We can also mention here the [CockroachDB BOSH Release][cockroachdb_release]
 clustered for High Availability), that has a working BOSH deployment
 [in our Easy Foundry distribution][cockroachdb_gbe_spec].
 
-[instances_prop]: ./blob/v1.0.0/manifests/kong.yml#L7
+[instances_prop]: ./deploy/kong.yml#L6
 [db_update_frequency_doc]: https://docs.konghq.com/0.14.x/clustering/#1-db_update_frequency-default-5s
 [cassandra_release]: https://github.com/orange-cloudfoundry/cassandra-boshrelease
 [cockroachdb_release]: https://github.com/cppforlife/cockroachdb-release
