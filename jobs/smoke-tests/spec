@@ -2,7 +2,7 @@
 name: smoke-tests
 
 templates:
-  run: bin/run
+  bin/run: bin/run
 
 packages: []
 
