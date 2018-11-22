@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+
+set -e
+
+function _config() {
+    readonly OPENRESTY_VERSION=1.13.6.2
+}
+
+function main() {
+    _config
+
+    _workaround_missing_libraries
+
+    tar -xf "openresty/openresty-${OPENRESTY_VERSION}.tar.gz"
+
+    readonly CORES_COUNT=$(grep -c ^processor /proc/cpuinfo)
+    pushd "openresty-${OPENRESTY_VERSION}"
+        ./configure -j${CORES_COUNT} \
+            --prefix="${BOSH_INSTALL_TARGET}" \
+            --with-pcre-jit \
+            --with-http_ssl_module \
+            --with-http_realip_module \
+            --with-http_stub_status_module \
+            --with-http_v2_module
+
+        # Other options to consider in the future:
+        #
+        # --with-libpq=DIR                   specify the libpq (or postgresql) installation prefix
+        # --with-pg_config=PATH              specify the path of the pg_config utility
+        # --with-pcre=DIR                    set path to PCRE library sources
+
+        make -j${CORES_COUNT}
+        make install
+    popd
+
+    cp -v "openresty/runtime.env" "${BOSH_INSTALL_TARGET}/"
+}
+
+function _workaround_missing_libraries() {
+
+    # NOTE: We use the '-o APT::Sandbox::User=root' option as a workaround for
+    # this error: "Could not execute 'apt-key' to verify signature".
+    #
+    # See: https://github.com/cloudfoundry/bosh-linux-stemcell-builder/issues/39#issuecomment-418136627
+    apt -o APT::Sandbox::User=root update
+    apt install -y libpcre3-dev
+
+    # In case any further Stemcell version removes somu utilities we had when
+    # writing this script, we install here all the required packages, as
+    # advised in "Debian and Ubuntu users" section of documentation.
+    #
+    # See: https://openresty.org/en/installation.html
+    apt-get install -y libpcre3-dev \
+        libssl-dev perl make build-essential curl
+}
+
+main "$@"

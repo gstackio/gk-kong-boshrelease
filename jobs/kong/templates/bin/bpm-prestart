@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+set -e
+
+readonly JOB_NAME=kong
+readonly \
+    LOG_DIR=/var/vcap/sys/log/${JOB_NAME} \
+    RUN_DIR=/var/vcap/sys/run/${JOB_NAME} \
+    JOB_DIR=/var/vcap/jobs/${JOB_NAME} \
+    DATA_DIR=/var/vcap/data/${JOB_NAME}
+
+
+
+# Prepare the data directory that is used as Kong's prefix directory, in order
+# to properly dispatch the Kong-generated file according to BOSH conventions.
+
+sudo -u vcap -g vcap ln -sfn "${LOG_DIR}" "${DATA_DIR}/logs"
+
+sudo -u vcap -g vcap ln -sfn "${RUN_DIR}" "${DATA_DIR}/pids"
+
+
+
+<% if spec.bootstrap -%>
+
+# Run Kong's data migrations. This apprears only in the BPM prestart script of
+# the 'bootstrap' node in the BOSH instance group.
+/var/vcap/jobs/kong/bin/kong migrations up --conf "${JOB_DIR}/config/kong.conf"
+
+<% end -%>

@@ -1,0 +1,70 @@
+---
+name: ((deployment_name))
+
+instance_groups:
+  - name: kong
+    instances: 1
+    azs: [z1, z2, z3]
+    jobs:
+      - name: kong
+        release: gk-kong
+      - name: bpm
+        release: bpm
+      - name: smoke-tests
+        release: gk-kong
+    stemcell: default
+    vm_type: default
+    networks:
+      - name: ((network_name))
+
+  - name: database
+    instances: 1
+    azs: [z1]
+    jobs:
+      - name: postgres
+        release: postgres
+        properties:
+          databases: 
+            databases:
+              - name: kong
+                citext: true
+                tag: kong-db-tag
+            port: 5432
+            roles:
+              - name: kong
+                password: ((kong_db_password))
+                permissions:
+                  - "SUPERUSER"
+                tag: kong-db-tag
+    stemcell: default
+    vm_type: default
+    networks:
+      - name: ((network_name))
+
+variables:
+  - name: kong_db_password
+    type: password
+
+stemcells:
+  - alias: default
+    os: ubuntu-xenial
+    version: latest
+
+update:
+  canaries: 1
+  canary_watch_time: 1000-60000
+  update_watch_time: 1000-60000
+  max_in_flight: 1
+  serial: false
+
+releases:
+  - name: gk-kong
+    version: latest
+  - name: bpm
+    version: "0.13.0"
+    url: https://bosh.io/d/github.com/cloudfoundry-incubator/bpm-release?v=0.13.0
+    sha1: 4b6ebfdaa467c04855528172b099e565d679e0f5
+  - name: postgres
+    version: "30"
+    url: https://bosh.io/d/github.com/cloudfoundry/postgres-release?v=30
+    sha1: a798999d29b9f5aa12035cff907b26674b491200

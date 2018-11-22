@@ -1,0 +1,8 @@
+---
+name: openresty
+
+dependencies: []
+
+files:
+  - openresty/openresty-*.tar.gz
+  - openresty/runtime.env

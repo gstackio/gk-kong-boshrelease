@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+# This is a wrapper around the 'kong' CLI, that sets all the environment
+# variables required in a BOSH setup.
+#
+# This wrapper is to be used instead of the original 'kong' CLI in all scipts,
+# like 'bpm.yml' and 'bpm-prestart'.
+
+set -e
+
+
+source /var/vcap/packages/openresty/runtime.env
+export LUAROCKS_CONFIG=/var/vcap/packages/kong/etc/luarocks/runtime-config.lua
+# NOTE: the environment variables created below are depending on the rocks
+# trees listed in the Luarocks config file above.
+source /var/vcap/packages/luarocks/runtime.env
+
+exec /var/vcap/packages/kong/bin/kong "$@"

@@ -1,0 +1,9 @@
+kong/kong-0.14.1.tar.gz:
+  size: 775812
+  sha: 0585b2532db78557432a4bd15fcc4b8599cd71d6
+luarocks/luarocks-3.0.4.tar.gz:
+  size: 205350
+  sha: 86a270938d6aafd1af65b57a1cc527bb2745b8a6
+openresty/openresty-1.13.6.2.tar.gz:
+  size: 4635916
+  sha: 870055f4698168f1f045de92c467a33361dee5d7

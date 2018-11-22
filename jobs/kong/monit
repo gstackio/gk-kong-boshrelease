@@ -1,0 +1,5 @@
+check process kong
+  with pidfile /var/vcap/sys/run/bpm/kong/nginx.pid
+  start program "/var/vcap/jobs/bpm/bin/bpm start kong"
+  stop program "/var/vcap/jobs/bpm/bin/bpm stop kong"
+  group vcap

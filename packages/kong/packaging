@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+
+set -e
+
+function _config() {
+    readonly KONG_VERSION=0.14.1
+}
+
+function main() {
+    _config
+
+    _workaround_missing_libraries
+
+    local target_cfg_dir="${BOSH_INSTALL_TARGET}/etc/luarocks"
+    mkdir -p "${target_cfg_dir}"
+    cp -v "kong/luarocks-compile-config.lua" "${target_cfg_dir}/compile-config.lua"
+    cp -v "kong/luarocks-runtime-config.lua" "${target_cfg_dir}/runtime-config.lua"
+
+    export LUAROCKS_CONFIG="${target_cfg_dir}/compile-config.lua"
+
+    # NOTE: the environment variables created below are depending on the rocks
+    # trees listed in the Luarocks config file above.
+    source /var/vcap/packages/luarocks/runtime.env
+
+    tar -xf "kong/kong-${KONG_VERSION}.tar.gz"
+    pushd "kong-${KONG_VERSION}"
+        luarocks make
+        mv -v ./bin/* "${BOSH_INSTALL_TARGET}/bin"
+    popd
+}
+
+function _workaround_missing_libraries() {
+
+    # NOTE: We use the '-o APT::Sandbox::User=root' option as a workaround for
+    # this error: "Could not execute 'apt-key' to verify signature".
+    #
+    # See: https://github.com/cloudfoundry/bosh-linux-stemcell-builder/issues/39#issuecomment-418136627
+    apt -o APT::Sandbox::User=root update
+    apt install -y git
+}
+
+main "$@"

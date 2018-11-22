@@ -1,0 +1,9 @@
+---
+name: luarocks
+
+dependencies:
+  - openresty
+
+files:
+  - luarocks/luarocks-*.tar.gz
+  - luarocks/runtime.env

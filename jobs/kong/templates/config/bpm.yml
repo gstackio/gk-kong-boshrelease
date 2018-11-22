@@ -1,0 +1,12 @@
+---
+processes:
+  - name: kong
+    hooks:
+      pre_start: /var/vcap/jobs/kong/bin/bpm-prestart
+    executable: /var/vcap/jobs/kong/bin/kong
+    args:
+      - start
+      - --v
+      - --conf
+      - /var/vcap/jobs/kong/config/kong.conf
+    ephemeral_disk: true

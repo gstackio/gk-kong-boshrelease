@@ -1,0 +1,11 @@
+---
+name: kong
+
+dependencies:
+  - luarocks
+  - openresty
+
+files:
+  - kong/kong-*.tar.gz
+  - kong/luarocks-compile-config.lua
+  - kong/luarocks-runtime-config.lua
