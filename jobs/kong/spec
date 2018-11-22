@@ -128,3 +128,17 @@ properties:
       See also: https://docs.konghq.com/0.14.x/configuration/#trusted_ips
     default: []
     example: [ "0.0.0.0/0", "::/0" ]
+
+  datastore.db_update_frequency_in_sec:
+    description: |
+      This value determines the frequency at which your Kong nodes will be
+      polling the database for invalidation events.
+
+      A lower value will mean that the polling job will be executed more
+      frequently, but that your Kong nodes will keep up with changes you
+      apply. A higher value will mean that your Kong nodes will spend less
+      time running the polling jobs, and will focus on proxying your
+      traffic.
+
+      See: https://docs.konghq.com/0.14.x/clustering/#1-db_update_frequency-default-5s
+    default: 5
