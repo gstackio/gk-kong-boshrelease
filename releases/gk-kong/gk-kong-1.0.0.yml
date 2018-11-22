@@ -1,0 +1,36 @@
+name: gk-kong
+version: 1.0.0
+commit_hash: 8ccec61
+uncommitted_changes: false
+jobs:
+- name: kong
+  version: 4cf17a908be219f4fe33b456d972e81c0d1cd271
+  fingerprint: 4cf17a908be219f4fe33b456d972e81c0d1cd271
+  sha1: e755aa75d2e4e13766bc7f8a4b28fdd0e629f703
+- name: smoke-tests
+  version: 87d0e6c7ad93e47ba772f664729e961e71e7e0b3
+  fingerprint: 87d0e6c7ad93e47ba772f664729e961e71e7e0b3
+  sha1: 62d695f68930c8956be2834efbb7b989f79e7403
+packages:
+- name: kong
+  version: 1e42cc016379dfede3e06764e012e7ae0c744a92
+  fingerprint: 1e42cc016379dfede3e06764e012e7ae0c744a92
+  sha1: 1365193abd40a436d06aca5866cf41d64b1696f9
+  dependencies:
+  - luarocks
+  - openresty
+- name: luarocks
+  version: d6d01bc3aac0c1e2c05fc44455099b052506545c
+  fingerprint: d6d01bc3aac0c1e2c05fc44455099b052506545c
+  sha1: 7e4e5eda397ad8d325f6393bd669886b01fbfc00
+  dependencies:
+  - openresty
+- name: openresty
+  version: 1ad7e82b9438acb6b5636252f51ad2be1d45237d
+  fingerprint: 1ad7e82b9438acb6b5636252f51ad2be1d45237d
+  sha1: 967b02702181e6139f032f404126befb993b41f9
+  dependencies: []
+license:
+  version: fa345d4b0b940116afc8e1f4213ba5b84536c468
+  fingerprint: fa345d4b0b940116afc8e1f4213ba5b84536c468
+  sha1: 61847c2198fd1daee7a2c3f8d374577a61bc0a65
