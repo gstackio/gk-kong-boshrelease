@@ -26,6 +26,19 @@ consumes:
     type: database
     optional: true
 
+provides:
+  - name: kong
+    type: kong
+    properties:
+      - proxy.bind_port
+      - proxy.tls.enabled
+      - proxy.tls.bind_port
+      - proxy.tls.cert
+      - admin.bind_port
+      - admin.tls.enabled
+      - admin.tls.bind_port
+      - admin.tls.cert
+
 properties:
   proxy.bind_ip:
     description: |

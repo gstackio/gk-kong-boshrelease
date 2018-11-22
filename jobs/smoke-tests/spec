@@ -3,7 +3,13 @@ name: smoke-tests
 
 templates:
   bin/run: bin/run
+  tls/proxy_ca.crt: tls/proxy_ca.crt
+  tls/admin_ca.crt: tls/admin_ca.crt
 
 packages: []
+
+consumes:
+  - name: kong
+    type: kong
 
 properties: {}

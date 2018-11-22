@@ -1,15 +1,53 @@
 #!/usr/bin/env bash
+<%
+    require "shellwords"
+    def esc(x)
+        Shellwords.shellescape(x)
+    end
 
-set -eo pipefail -x
+    if link("kong").p("admin.tls.enabled")
+        adm_scheme = "https"
+        adm_port = link("kong").p("admin.tls.bind_port")
+    else
+        adm_scheme = "http"
+        adm_port = link("kong").p("admin.bind_port")
+    end
+
+    if link("kong").p("proxy.tls.enabled")
+        pxy_scheme = "https"
+        pxy_port = link("kong").p("proxy.tls.bind_port")
+    else
+        pxy_scheme = "http"
+        pxy_port = link("kong").p("proxy.bind_port")
+    end
+-%>
+
+set -eo pipefail
+
+function prepend_datetime() {
+    awk -W interactive '{ system("echo -n [$(date +%FT%T%z)]"); print " " $0 }'
+}
+
+exec \
+    3>&1 \
+    1> >(prepend_datetime >&3) \
+    2>&1
+
+readonly ADM_BASE_URI=<%= esc(adm_scheme) %>://127.0.0.1:<%= esc(adm_port) %>
+readonly PXY_BASE_URI=<%= esc(pxy_scheme) %>://127.0.0.1:<%= esc(pxy_port) %>
+
+set -x
 
 # query the 'info' endpoint
 curl -fsSL -X GET -i \
-    --url http://127.0.0.1:8001/
+    --url "${ADM_BASE_URI}/" \
+    --cacert /var/vcap/jobs/smoke-tests/tls/admin_ca.crt
 echo -e "\n"
 
 # create an API
 curl -fsSL -X POST -i \
-    --url http://127.0.0.1:8001/apis/ \
+    --url "${ADM_BASE_URI}/apis/" \
+    --cacert /var/vcap/jobs/smoke-tests/tls/admin_ca.crt \
     --data 'name=example-api' \
     --data 'hosts=example.com' \
     --data 'upstream_url=http://mockbin.org'
@@ -17,17 +55,20 @@ echo -e "\n"
 
 # get the created API
 curl -fsSL -X GET -i \
-    --url http://127.0.0.1:8001/apis/example-api
+    --url "${ADM_BASE_URI}/apis/example-api" \
+    --cacert /var/vcap/jobs/smoke-tests/tls/admin_ca.crt
 echo -e "\n"
 
 # send a request through the API
 curl -fsSL -X GET -i \
-    --url http://127.0.0.1:8000/ \
+    --url "${PXY_BASE_URI}/" \
+    --cacert /var/vcap/jobs/smoke-tests/tls/proxy_ca.crt \
     --header 'Host: example.com'
 echo -e "\n"
 
 # delete the API
 curl -fsSL -X DELETE -i \
-    --url http://127.0.0.1:8001/apis/example-api
+    --url "${ADM_BASE_URI}/apis/example-api" \
+    --cacert /var/vcap/jobs/smoke-tests/tls/admin_ca.crt
 
 exit 0

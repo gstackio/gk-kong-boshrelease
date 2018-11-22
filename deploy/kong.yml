@@ -63,6 +63,7 @@ variables:
       common_name: kong.((network_name)).((deployment_name)).bosh
       alternative_names:
         - "*.kong.((network_name)).((deployment_name)).bosh"
+        - "127.0.0.1"
 
 stemcells:
   - alias: default

@@ -1,0 +1,1 @@
+<%= link("kong").p("proxy.tls.cert.ca", "") -%>
