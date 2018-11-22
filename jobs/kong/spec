@@ -38,6 +38,7 @@ provides:
       - admin.tls.enabled
       - admin.tls.bind_port
       - admin.tls.cert
+      - datastore.db_update_frequency_in_sec
 
 properties:
   proxy.bind_ip:

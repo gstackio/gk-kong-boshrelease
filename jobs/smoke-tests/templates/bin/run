@@ -20,6 +20,8 @@
         pxy_scheme = "http"
         pxy_port = link("kong").p("proxy.bind_port")
     end
+
+    main_address = link("kong").instances.first.address
 -%>
 
 set -eo pipefail
@@ -34,7 +36,7 @@ exec \
     2>&1
 
 readonly ADM_BASE_URI=<%= esc(adm_scheme) %>://127.0.0.1:<%= esc(adm_port) %>
-readonly PXY_BASE_URI=<%= esc(pxy_scheme) %>://127.0.0.1:<%= esc(pxy_port) %>
+readonly PXY_BASE_URI=<%= esc("#{pxy_scheme}://#{main_address}:#{pxy_port}") %>
 
 set -x
 
@@ -58,6 +60,8 @@ curl -fsSL -X GET -i \
     --url "${ADM_BASE_URI}/apis/example-api" \
     --cacert /var/vcap/jobs/smoke-tests/tls/admin_ca.crt
 echo -e "\n"
+
+sleep $((<%= esc(link("kong").p("datastore.db_update_frequency_in_sec")) %> + 1))
 
 # send a request through the API
 curl -fsSL -X GET -i \

@@ -65,6 +65,9 @@ variables:
         - "*.kong.((network_name)).((deployment_name)).bosh"
         - "127.0.0.1"
 
+features:
+  use_dns_addresses: true
+
 stemcells:
   - alias: default
     os: ubuntu-xenial
