@@ -1,11 +1,20 @@
 ---
 name: kong
 
+description: |
+  Kong Community Edition (CE) API Gateway.
+
 templates:
   config/bpm.yml: config/bpm.yml
   bin/bpm-prestart: bin/bpm-prestart
   bin/kong: bin/kong
   config/kong.conf: config/kong.conf
+  tls/proxy.crt: tls/proxy.crt
+  tls/proxy.key: tls/proxy.key
+  tls/client.crt: tls/client.crt
+  tls/client.key: tls/client.key
+  tls/admin.crt: tls/admin.crt
+  tls/admin.key: tls/admin.key
 
 packages:
   - kong
@@ -17,4 +26,105 @@ consumes:
     type: database
     optional: true
 
-properties: {}
+properties:
+  proxy.bind_ip:
+    description: |
+      IP address on which the API Gateway proxy should listen for HTTP
+      traffic.
+    default: "0.0.0.0"
+  proxy.bind_port:
+    description: |
+      Port on which the API Gateway proxy should listen for HTTP traffic.
+    default: 8000
+
+  proxy.tls.enabled:
+    description: |
+      Determines if the API Gateway proxy should be listening for HTTPS
+      traffic.
+    default: true
+  proxy.tls.bind_port:
+    description: |
+      Port on which the API Gateway proxy should listen for HTTPS traffic.
+    default: 8443
+  proxy.tls.cert:
+    type: certificate
+    description: |
+      The TLS certificate and private key to use for the Kong API Gateway
+      proxy.
+
+  proxy.client.tls.enabled:
+    description: |
+      Determines if the Kong API Gateway proxy should send client-side TLS
+      certificates when proxying requests.
+    default: false
+  proxy.client.tls.cert:
+    type: certificate
+    description: |
+      The TLS certificate and private key to use for the Kong API Gateway
+      proxy to send client-side TLS certificate when proxying requests.
+
+  admin.bind_ip:
+    description: |
+      IP address on which the Kong admin API should listen for HTTP traffic.
+    default: "127.0.0.1"
+  admin.bind_port:
+    description: |
+      Port on which the Kong admin API should listen for HTTP traffic.
+    default: 8001
+
+  admin.tls.enabled:
+    description: |
+      Determines if the Kong admin API should be listening for HTTPS traffic.
+    default: true
+  admin.tls.bind_port:
+    description: |
+      Port on which the Kong admin API should listen for HTTPS traffic.
+    default: 8444
+  admin.tls.cert:
+    type: certificate
+    description: |
+      The TLS certificate and private key to use for the Kong admin API.
+
+  # tls.protocols:
+  #   description: |
+  #     Space separated list of protocols to support.
+  #     Not yet implemented.
+  #   example: "TLSv1.2"
+  tls.ciphers:
+    description: |
+      OpenSSL formatted list of ciphers to support. This applies to both proxy
+      and admin TLS endpoints.
+
+      When this property is not set, then the 'modern' cipher suite is used.
+
+      See also: https://docs.konghq.com/0.14.x/configuration/#ssl_cipher_suite
+    example: |
+      ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256
+
+  client_body_buffer_size:
+    description: |
+      Defines the buffer size for reading the request body.
+
+      If the client request body is larger than this value, the body will be
+      buffered to disk. When the body is buffered to disk Kong plugins that
+      access or manipulate the request body may not work.
+
+      It is advisable to set this value as high as possible. But high-
+      concurrency environments will require significant memory allocations to
+      process many concurrent large request bodies, though.
+
+      See also: https://docs.konghq.com/0.14.x/configuration/#client_body_buffer_size
+    default: 8k
+
+  trusted_ips:
+    description: |
+      A list of CIDR blocks that defines trusted IP address blocks that are
+      known to send correct 'X-Forwarded-*' headers.
+
+      Requests from trusted IPs make Kong forward their 'X-Forwarded-*'
+      headers upstream. Non-trusted requests make Kong insert its own
+      'X-Forwarded-*' headers.
+
+      See also: https://docs.konghq.com/0.14.x/configuration/#trusted_ips
+    default: []
+    example: [ "0.0.0.0/0", "::/0" ]

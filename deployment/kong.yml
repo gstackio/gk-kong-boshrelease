@@ -8,6 +8,13 @@ instance_groups:
     jobs:
       - name: kong
         release: gk-kong
+        properties:
+          proxy:
+            tls:
+              cert: ((kong_tls))
+          admin:
+            tls:
+              cert: ((kong_tls))
       - name: bpm
         release: bpm
       - name: smoke-tests
@@ -44,6 +51,18 @@ instance_groups:
 variables:
   - name: kong_db_password
     type: password
+  - name: kong_ca
+    type: certificate
+    options:
+      is_ca: true
+      common_name: kong-ca
+  - name: kong_tls
+    type: certificate
+    options:
+      ca: kong_ca
+      common_name: kong.((network_name)).((deployment_name)).bosh
+      alternative_names:
+        - "*.kong.((network_name)).((deployment_name)).bosh"
 
 stemcells:
   - alias: default
