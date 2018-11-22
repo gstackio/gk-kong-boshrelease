@@ -56,9 +56,12 @@ bosh deploy "deploy/kong.yml"
 Horizontal scaling works out of the box, with a mere updating of the
 [`instances:` property][instances_prop] in the deployment manifest. Kong nodes
 will synchronize their state on the shared PostgreSQL database, with
-[some caching implemented][db_update_frequency_doc]. You can update the
-[`db_update_frequency_in_sec`][db_update_frequency_prop] value (default is 5
-seconds) to suit your needs.
+[some caching implemented][db_update_frequency_doc].
+
+You can update the [`db_update_frequency_in_sec`][db_update_frequency_prop]
+value (default is 5 seconds) to suit your needs.
+The [customize-db-update-freqency.yml][db_update_freqency_ops_file] ops file
+is provided here to help you in this.
 
 Please note though, that the default deployment manifest doesn't provide you
 with any High Availability (HA) or horizontal scaling solution for the
@@ -77,6 +80,7 @@ clustered for High Availability), that has a working BOSH deployment
 [instances_prop]: ./deploy/kong.yml#L6
 [db_update_frequency_doc]: https://docs.konghq.com/0.14.x/clustering/#1-db_update_frequency-default-5s
 [db_update_frequency_prop]: ./jobs/kong/spec#L132-L144
+[db_update_freqency_ops_file]: ./deploy/operators/customize-db-update-freqency.yml
 [cassandra_release]: https://github.com/orange-cloudfoundry/cassandra-boshrelease
 [cockroachdb_release]: https://github.com/cppforlife/cockroachdb-release
 [cockroachdb_gbe_spec]: https://github.com/gstackio/gstack-bosh-environment/blob/master/deployments/cockroachdb/conf/spec.yml

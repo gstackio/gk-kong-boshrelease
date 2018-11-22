@@ -1,0 +1,5 @@
+---
+
+- path: /instance_groups/name=kong/jobs/name=kong/properties/datastore?/db_update_frequency_in_sec
+  type: replace
+  value: ((db_update_frequency_in_sec))
