@@ -23,10 +23,11 @@ for initial deployments and subsequently used for updating your deployments.
 ```
 git lfs version   # check that you have the 'git-lfs' extension
 git clone https://github.com/gstackio/gk-kong-boshrelease.git
+cd gk-kong-boshrelease/deploy
 
 export BOSH_ENVIRONMENT=<bosh-alias>
 export BOSH_DEPLOYMENT=kong
-bosh deploy gk-kong-boshrelease/deploy/kong.yml
+bosh deploy kong.yml --vars-file=default-vars.yml
 ```
 
 If your BOSH does not have Credhub/Config Server (but it should), then
@@ -44,9 +45,9 @@ upgrade.
 ```
 export BOSH_ENVIRONMENT=<bosh-alias>
 export BOSH_DEPLOYMENT=kong
-cd gk-kong-boshrelease
+cd gk-kong-boshrelease/deploy
 git pull
-bosh deploy "deploy/kong.yml"
+bosh deploy kong.yml --vars-file=default-vars.yml
 ```
 
 
