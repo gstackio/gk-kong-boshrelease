@@ -80,7 +80,7 @@ request PUT "/services/${ADM_SERVICE_UUID_URLENC}" \
 # Create or update the Route for the Admin API
 request PUT "/routes/${ADM_ROUTE_UUID_URLENC}" \
     --data-raw <%= sh_esc(js_esc({
-            "protocols"      => [ "https" ],
+            "protocols"      => [ p("proxy.tls.enabled") ? "https" : "http" ],
             "paths"          => [ adm_route_path ],
             "regex_priority" => 100,
             "service" => { "id" => adm_service_uuid, },
