@@ -69,11 +69,14 @@ defer cleanup_netrc
 function request() {
     local base=$1 verb=$2 uri_path=$3; shift 3
 
-    curl -fsSL -X "${verb}" \
-        --cacert /var/vcap/jobs/kong/tls/admin_ca.crt \
-        --url "${base}${uri_path}" \
-        "$@" \
-        --include
+    (
+        set -x
+        curl -fsSL -X "${verb}" \
+            --cacert /var/vcap/jobs/kong/tls/admin_ca.crt \
+            --url "${base}${uri_path}" \
+            "$@" \
+            --include
+    )
 }
 
 function admin() {
@@ -84,7 +87,7 @@ function proxy() {
     request "${PXY_BASE_URI}" "$@"
 }
 
-set -x
+
 
 # query the 'info' endpoint
 admin GET "/" \
@@ -119,6 +122,5 @@ echo $'\n'
 proxy GET "/" --header "Host: example.com" \
     | tr -d '\r' | sed -e '/^$/,$d' # only display the HTTP response headers
 echo $'\n'
-
 
 exit 0
