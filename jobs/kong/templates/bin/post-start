@@ -57,56 +57,56 @@ readonly ADM_CONSUMER_NAME_URLENC=<%= sh_esc(uri_esc(adm_username)) %>
 
 set -x
 
+function request() {
+    local verb=$1 uri_path=$2; shift 2
+
+    curl -fsSL -X "${verb}" \
+        --cacert /var/vcap/jobs/kong/tls/admin_ca.crt \
+        --url "${ADM_BASE_URI}${uri_path}" \
+        --header "Content-Type: application/json" \
+        "$@"
+}
+
 <% if spec.bootstrap -%>
 
 # Create or update the Service for the Admin API
-curl -fsSL -X PUT -i \
-    --cacert /var/vcap/jobs/kong/tls/admin_ca.crt \
-    --url "${ADM_BASE_URI}/services/${ADM_SERVICE_UUID_URLENC}" \
-    --header "Content-Type: application/json" \
+request PUT "/services/${ADM_SERVICE_UUID_URLENC}" \
     --data-raw <%= sh_esc(js_esc({
             "name" => adm_service_name,
             "url"  => adm_base_uri,
-        })) %>
+        })) %> \
+    --include
 
 # Create or update the Route for the Admin API
-curl -fsSL -X PUT -i \
-    --cacert /var/vcap/jobs/kong/tls/admin_ca.crt \
-    --url "${ADM_BASE_URI}/routes/${ADM_ROUTE_UUID_URLENC}" \
-    --header "Content-Type: application/json" \
+request PUT "/routes/${ADM_ROUTE_UUID_URLENC}" \
     --data-raw <%= sh_esc(js_esc({
             "protocols"      => [ "https" ],
             "paths"          => [ adm_route_path ],
             "regex_priority" => 100,
             "service" => { "id" => adm_service_uuid, },
-        })) %>
+        })) %> \
+    --include
 
-existing_basic_auth_plugins=$(curl -fsSL -X GET \
-    --cacert /var/vcap/jobs/kong/tls/admin_ca.crt \
-    --url "${ADM_BASE_URI}/plugins?name=basic-auth&service_id=${ADM_SERVICE_UUID_URLENC}")
+existing_basic_auth_plugins=$(request GET \
+    "/plugins?name=basic-auth&service_id=${ADM_SERVICE_UUID_URLENC}")
 
 if grep -qF '"total":0' <<< "${existing_basic_auth_plugins}"; then
     # Enable the 'Basic Authentication' plugin on the Admin API Service
-    curl -fsSL -X PUT -i \
-        --cacert /var/vcap/jobs/kong/tls/admin_ca.crt \
-        --url "${ADM_BASE_URI}/plugins" \
-        --header "Content-Type: application/json" \
+    request PUT "/plugins" \
         --data-raw <%= sh_esc(js_esc({
                 "name"   => "basic-auth",
                 "config" => {
                     "hide_credentials" => true,
                 },
                 "service_id" => adm_service_uuid,
-            })) %>
+            })) %> \
+        --include
 else
     # FIXME: using 'jq' is a must here
     plugin_uuid=$(sed -rne 's/^.*[{,]"id":"([0-9A-Fa-f-]+)"[},].*$/\1/p' <<< "${existing_basic_auth_plugins}")
 
     # Update the 'Basic Authentication' plugin on the Admin API Service
-    curl -fsSL -X PATCH -i \
-        --cacert /var/vcap/jobs/kong/tls/admin_ca.crt \
-        --url "${ADM_BASE_URI}/plugins/${plugin_uuid}" \
-        --header "Content-Type: application/json" \
+    request PATCH "/plugins/${plugin_uuid}" \
         --data-raw <%= sh_esc(js_esc({
                 "name"        => "basic-auth",
                 "consumer_id" => nil,
@@ -116,30 +116,26 @@ else
                     "hide_credentials" => true,
                 },
                 "enabled" => true,
-            })) %>
+            })) %> \
+        --include
 fi
 
 # Create or update the Consumer for the admin API
-curl -fsSL -X PUT -i \
-    --cacert /var/vcap/jobs/kong/tls/admin_ca.crt \
-    --url "${ADM_BASE_URI}/consumers/${ADM_CONSUMER_UUID_URLENC}" \
-    --header "Content-Type: application/json" \
+request PUT "/consumers/${ADM_CONSUMER_UUID_URLENC}" \
     --data-raw <%= sh_esc(js_esc({
             "username" => adm_username,
-        })) %>
+        })) %> \
+    --include
 
 
 # Create or update the basic auth Credential
-if curl -fsSL -X GET \
-    --cacert /var/vcap/jobs/kong/tls/admin_ca.crt \
-    --url "${ADM_BASE_URI}/consumers/${ADM_CONSUMER_UUID_URLENC}/basic-auth/${ADM_CONSUMER_NAME_URLENC}" \
+if request GET \
+    "/consumers/${ADM_CONSUMER_UUID_URLENC}/basic-auth/${ADM_CONSUMER_NAME_URLENC}" \
     --output /dev/null
 then
     set +x # don't have the password leak into post-start logs
-    curl -fsSL -X PATCH -i \
-        --cacert /var/vcap/jobs/kong/tls/admin_ca.crt \
-        --url "${ADM_BASE_URI}/consumers/${ADM_CONSUMER_UUID_URLENC}/basic-auth/${ADM_CONSUMER_NAME_URLENC}" \
-        --header "Content-Type: application/json" \
+    request PATCH \
+        "/consumers/${ADM_CONSUMER_UUID_URLENC}/basic-auth/${ADM_CONSUMER_NAME_URLENC}" \
         --data-raw <%= sh_esc(js_esc({
                 "password" => adm_password,
             })) %> \
@@ -147,10 +143,7 @@ then
     set -x
 else
     set +x # don't have the password leak into post-start logs
-    curl -fsSL -X POST -i \
-        --cacert /var/vcap/jobs/kong/tls/admin_ca.crt \
-        --url "${ADM_BASE_URI}/consumers/${ADM_CONSUMER_UUID_URLENC}/basic-auth" \
-        --header "Content-Type: application/json" \
+    request POST "/consumers/${ADM_CONSUMER_UUID_URLENC}/basic-auth" \
         --data-raw <%= sh_esc(js_esc({
                 "username" => adm_username,
                 "password" => adm_password,

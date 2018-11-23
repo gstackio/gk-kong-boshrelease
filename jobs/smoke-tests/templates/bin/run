@@ -33,6 +33,7 @@ exec \
 
 readonly ADM_BASE_URI=<%= esc("#{pxy_scheme}://#{main_address}:#{pxy_port}#{adm_path}") %>
 readonly PXY_BASE_URI=<%= esc("#{pxy_scheme}://#{main_address}:#{pxy_port}") %>
+readonly API_NAME=smoke-tests-mockbin-api
 
 # setup cleanup framework
 defer_stack=()
@@ -65,52 +66,57 @@ function cleanup_netrc() {
 }
 defer cleanup_netrc
 
+function request() {
+    local base=$1 verb=$2 uri_path=$3; shift 3
+
+    curl -fsSL -X "${verb}" \
+        --cacert /var/vcap/jobs/kong/tls/admin_ca.crt \
+        --url "${base}${uri_path}" \
+        "$@" \
+        --include
+}
+
+function admin() {
+    request "${ADM_BASE_URI}" "$@" --netrc
+}
+
+function proxy() {
+    request "${PXY_BASE_URI}" "$@"
+}
+
 set -x
 
 # query the 'info' endpoint
-curl -fsSL -X GET -i \
-        --url "${ADM_BASE_URI}/" \
-        --cacert /var/vcap/jobs/smoke-tests/tls/admin_ca.crt \
-        --netrc \
+admin GET "/" \
     | tr -d '\r' | sed -e '/^$/,$d' # only display the HTTP response headers
 echo -e "\n"
 
 function cleanup_api() {
     # delete the API
-    curl -fsSL -X DELETE -i \
-        --url "${ADM_BASE_URI}/apis/example-api" \
-        --cacert /var/vcap/jobs/smoke-tests/tls/admin_ca.crt \
-        --netrc
+    admin DELETE "/apis/${API_NAME}"
 }
 
 cleanup_api || true # cleanup any stale API
 
 # create an API
-curl -fsSL -X POST -i \
-    --url "${ADM_BASE_URI}/apis/" \
-    --cacert /var/vcap/jobs/smoke-tests/tls/admin_ca.crt \
-    --netrc \
-    --data 'name=example-api' \
-    --data 'hosts=example.com' \
-    --data 'upstream_url=http://mockbin.org'
+admin POST "/apis/" \
+    --data "name=${API_NAME}" \
+    --data "hosts=example.com" \
+    --data "upstream_url=http://mockbin.org"
 echo -e "\n"
 
+# delete API uppon exit
 defer cleanup_api
 
-# get the created API
-curl -fsSL -X GET -i \
-    --url "${ADM_BASE_URI}/apis/example-api" \
-    --cacert /var/vcap/jobs/smoke-tests/tls/admin_ca.crt \
-    --netrc
-echo -e "\n"
-
+# wait for the API to be created
 sleep $((<%= esc(link("kong").p("datastore.db_update_frequency_in_sec")) %> + 1))
 
+# get the created API
+admin GET "/apis/${API_NAME}"
+echo -e "\n"
+
 # send a request through the API
-curl -fsSL -X GET -i \
-        --url "${PXY_BASE_URI}/" \
-        --cacert /var/vcap/jobs/smoke-tests/tls/proxy_ca.crt \
-        --header 'Host: example.com' \
+proxy GET "/" --header "Host: example.com" \
     | tr -d '\r' | sed -e '/^$/,$d' # only display the HTTP response headers
 echo -e "\n"
 
