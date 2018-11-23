@@ -1,0 +1,98 @@
+#!/usr/bin/env bash
+<%
+    require "shellwords"
+    def esc(x)
+        Shellwords.shellescape(x)
+    end
+
+    require "uri"
+    def url_enc(x)
+        URI.encode_www_form_component(x)
+    end
+
+    require "securerandom"
+
+    if p("admin.tls.enabled")
+        adm_scheme = "https"
+        adm_port = p("admin.tls.bind_port")
+    else
+        adm_scheme = "http"
+        adm_port = p("admin.bind_port")
+    end
+-%>
+
+# If a command fails, in a pipeline or not, exit immediately
+set -e -o pipefail
+
+function prepend_datetime() {
+  awk -W interactive '{ system("echo -n [$(date +%FT%T%z)]"); print " " $0 }'
+}
+
+exec \
+    3>&1 \
+    4>&2 \
+    1> >(prepend_datetime >&3) \
+    2> >(prepend_datetime >&4)
+
+readonly ADM_BASE_URI=<%= esc(adm_scheme) %>://127.0.0.1:<%= esc(adm_port) %>
+readonly ADMIN_API_SERVICE_NAME=kong-admin-api
+readonly ADMIN_API_SERVICE_PATH_URLENC=<%= esc(url_enc(p("admin.service.route_path"))) %>
+readonly ADMIN_API_USERNAME_URLENC=<%= esc(url_enc(p("admin.basic_auth.username"))) %>
+readonly ADMIN_API_PASSWORD_URLENC=<%= esc(url_enc(p("admin.basic_auth.password"))) %>
+
+set -x
+
+<% if spec.bootstrap -%>
+
+# Create a Service (if not already existing)
+if ! curl -fsSL -X GET \
+        --cacert /var/vcap/jobs/kong/tls/admin_ca.crt \
+        --url "${ADM_BASE_URI}/services/${ADMIN_API_SERVICE_NAME}" \
+        --output /dev/null
+then
+    curl -fsSL -X POST -i \
+        --cacert /var/vcap/jobs/kong/tls/admin_ca.crt \
+        --url "${ADM_BASE_URI}/services" \
+        --data-raw       "name=${ADMIN_API_SERVICE_NAME}" \
+        --data-urlencode "url=${ADM_BASE_URI}"
+fi
+
+# Create a Route
+curl -fsSL -X POST -i \
+    --cacert /var/vcap/jobs/kong/tls/admin_ca.crt \
+    --url "${ADM_BASE_URI}/services/${ADMIN_API_SERVICE_NAME}/routes" \
+    --data-raw "paths[]=${ADMIN_API_SERVICE_PATH_URLENC}"
+
+# Enabling the 'Basic Authentication' plugin on the Admin API Service
+curl -fsSL -X POST -i \
+    --cacert /var/vcap/jobs/kong/tls/admin_ca.crt \
+    --url "${ADM_BASE_URI}/services/${ADMIN_API_SERVICE_NAME}/plugins" \
+    --data-raw "name=basic-auth"  \
+    --data-raw "config.hide_credentials=true"
+
+# Create a Consumer (if not already existing)
+if ! curl -fsSL -X GET \
+        --cacert /var/vcap/jobs/kong/tls/admin_ca.crt \
+        --url "${ADM_BASE_URI}/consumers/${ADMIN_API_USERNAME_URLENC}" \
+        --output /dev/null
+then
+    curl -fsSL -X POST -i \
+        --cacert /var/vcap/jobs/kong/tls/admin_ca.crt \
+        --url "${ADM_BASE_URI}/consumers" \
+        --data-raw "username=${ADMIN_API_USERNAME_URLENC}" \
+        --data-raw custom_id=<%= esc(url_enc(SecureRandom.uuid)) %>
+fi
+
+# Create a Credential
+set +x # don't have the password leak into post-start logs
+curl -fsSL -X POST -i \
+    --cacert /var/vcap/jobs/kong/tls/admin_ca.crt \
+    --url "${ADM_BASE_URI}/consumers/${ADMIN_API_USERNAME_URLENC}/basic-auth" \
+    --data-raw "username=${ADMIN_API_USERNAME_URLENC}" \
+    --data-raw "password=${ADMIN_API_PASSWORD_URLENC}" \
+    --output /dev/null # don't leak the hashed password into post-start logs
+set +x
+
+<% end # spec.bootstrap -%>
+
+exit 0
