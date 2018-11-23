@@ -34,6 +34,24 @@ exec \
 readonly ADM_BASE_URI=<%= esc("#{pxy_scheme}://#{main_address}:#{pxy_port}#{adm_path}") %>
 readonly PXY_BASE_URI=<%= esc("#{pxy_scheme}://#{main_address}:#{pxy_port}") %>
 
+# setup cleanup framework
+defer_stack=()
+function defer() {
+    local function_name=$1
+
+    local new_stack=("${function_name}")
+    new_stack+=("${defer_stack[@]}")
+
+    defer_stack=("${new_stack[@]}")
+}
+function run_deferred() {
+    for fn in "${defer_stack[@]}"; do
+        "${fn}"
+    done
+}
+
+trap run_deferred EXIT
+
 # setup .netrc for curl to fetch the login name and password
 export HOME=/var/vcap/data/smoke-tests/fake-home
 mkdir -p "${HOME}"
@@ -42,20 +60,30 @@ chmod 600 "${HOME}/.netrc" # restrict access before writing content
 echo <%= esc("machine #{main_address} login #{adm_username} password #{adm_password}") %> \
     > "${HOME}/.netrc"
 
-function cleanup() {
+function cleanup_netrc() {
     rm -f "${HOME}/.netrc"
 }
-
-trap cleanup EXIT
+defer cleanup_netrc
 
 set -x
 
 # query the 'info' endpoint
 curl -fsSL -X GET -i \
-    --url "${ADM_BASE_URI}/" \
-    --cacert /var/vcap/jobs/smoke-tests/tls/admin_ca.crt \
-    --netrc
+        --url "${ADM_BASE_URI}/" \
+        --cacert /var/vcap/jobs/smoke-tests/tls/admin_ca.crt \
+        --netrc \
+    | tr -d '\r' | sed -e '/^$/,$d' # only display the HTTP response headers
 echo -e "\n"
+
+function cleanup_api() {
+    # delete the API
+    curl -fsSL -X DELETE -i \
+        --url "${ADM_BASE_URI}/apis/example-api" \
+        --cacert /var/vcap/jobs/smoke-tests/tls/admin_ca.crt \
+        --netrc
+}
+
+cleanup_api || true # cleanup any stale API
 
 # create an API
 curl -fsSL -X POST -i \
@@ -66,6 +94,8 @@ curl -fsSL -X POST -i \
     --data 'hosts=example.com' \
     --data 'upstream_url=http://mockbin.org'
 echo -e "\n"
+
+defer cleanup_api
 
 # get the created API
 curl -fsSL -X GET -i \
@@ -78,15 +108,11 @@ sleep $((<%= esc(link("kong").p("datastore.db_update_frequency_in_sec")) %> + 1)
 
 # send a request through the API
 curl -fsSL -X GET -i \
-    --url "${PXY_BASE_URI}/" \
-    --cacert /var/vcap/jobs/smoke-tests/tls/proxy_ca.crt \
-    --header 'Host: example.com'
+        --url "${PXY_BASE_URI}/" \
+        --cacert /var/vcap/jobs/smoke-tests/tls/proxy_ca.crt \
+        --header 'Host: example.com' \
+    | tr -d '\r' | sed -e '/^$/,$d' # only display the HTTP response headers
 echo -e "\n"
 
-# delete the API
-curl -fsSL -X DELETE -i \
-    --url "${ADM_BASE_URI}/apis/example-api" \
-    --cacert /var/vcap/jobs/smoke-tests/tls/admin_ca.crt \
-    --netrc
 
 exit 0
