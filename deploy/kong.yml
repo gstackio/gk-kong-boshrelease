@@ -2,30 +2,6 @@
 name: ((deployment_name))
 
 instance_groups:
-  - name: kong
-    instances: 1
-    azs: [z1, z2, z3]
-    jobs:
-      - name: kong
-        release: gk-kong
-        properties:
-          proxy:
-            tls:
-              cert: ((kong_tls))
-          admin:
-            tls:
-              cert: ((kong_tls))
-            basic_auth:
-              password: ((kong_admin_password))
-      - name: bpm
-        release: bpm
-      - name: smoke-tests
-        release: gk-kong
-    stemcell: default
-    vm_type: default
-    networks:
-      - name: ((network_name))
-
   - name: database
     instances: 1
     azs: [z1]
@@ -46,6 +22,30 @@ instance_groups:
                   - "SUPERUSER"
                 tag: kong-db-tag
     persistent_disk_type: default
+    stemcell: default
+    vm_type: default
+    networks:
+      - name: ((network_name))
+
+  - name: kong
+    instances: 1
+    azs: [z1, z2, z3]
+    jobs:
+      - name: kong
+        release: gk-kong
+        properties:
+          proxy:
+            tls:
+              cert: ((kong_tls))
+          admin:
+            tls:
+              cert: ((kong_tls))
+            basic_auth:
+              password: ((kong_admin_password))
+      - name: bpm
+        release: bpm
+      - name: smoke-tests
+        release: gk-kong
     stemcell: default
     vm_type: default
     networks:
