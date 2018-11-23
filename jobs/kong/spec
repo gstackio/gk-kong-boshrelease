@@ -118,11 +118,35 @@ properties:
     description: |
       The password of the consumer that will be granted access to the Kong
       admin API through basic authentication.
+  admin.basic_auth.consumer_uuid:
+    description: |
+      The UUID used for the Consumer that will hold the basic authentication
+      to the Kong admin API.
 
+      The default is usually fine for most implementations.
+    default: 305d4706-c467-47ef-b83b-f778ba1ad4ef
+
+  # admin.service.hostname:
+  #   description: |
+  #     The fully qualified DNS hostname of the Service that will expose the
+  #     Kong admin API.
   admin.service.route_path:
     description: |
       The name of the Service that will expose the Kong admin API.
     default: /admin-api
+
+  admin.service.uuid:
+    description: |
+      The UUID used for the Service that will expose the Kong admin API.
+
+      The default is usually fine for most implementations.
+    default: 28edcf4e-ee08-4808-8ab9-c2219fa2a6df
+  admin.service.route_uuid:
+    description: |
+      The UUID used for the Route that will expose the Kong admin API.
+
+      The default is usually fine for most implementations.
+    default: 3afc5416-c09a-47b7-9065-1a0e1400465f
 
 
 
