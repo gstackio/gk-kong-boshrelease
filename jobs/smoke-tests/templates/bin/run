@@ -89,7 +89,7 @@ set -x
 # query the 'info' endpoint
 admin GET "/" \
     | tr -d '\r' | sed -e '/^$/,$d' # only display the HTTP response headers
-echo -e "\n"
+echo $'\n'
 
 function cleanup_api() {
     # delete the API
@@ -103,7 +103,7 @@ admin POST "/apis/" \
     --data "name=${API_NAME}" \
     --data "hosts=example.com" \
     --data "upstream_url=http://mockbin.org"
-echo -e "\n"
+echo $'\n'
 
 # delete API uppon exit
 defer cleanup_api
@@ -113,12 +113,12 @@ sleep $((<%= esc(link("kong").p("datastore.db_update_frequency_in_sec")) %> + 1)
 
 # get the created API
 admin GET "/apis/${API_NAME}"
-echo -e "\n"
+echo $'\n'
 
 # send a request through the API
 proxy GET "/" --header "Host: example.com" \
     | tr -d '\r' | sed -e '/^$/,$d' # only display the HTTP response headers
-echo -e "\n"
+echo $'\n'
 
 
 exit 0
