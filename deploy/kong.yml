@@ -45,6 +45,7 @@ instance_groups:
                 permissions:
                   - "SUPERUSER"
                 tag: kong-db-tag
+    persistent_disk_type: default
     stemcell: default
     vm_type: default
     networks:
