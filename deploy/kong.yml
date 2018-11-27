@@ -42,6 +42,12 @@ instance_groups:
               cert: ((kong_tls))
             basic_auth:
               password: ((kong_admin_password))
+          extra_plugins:
+            - redirect
+          extra_plugin_packages:
+            - kong-redirect-plugin
+      - name: kong-redirect-plugin
+        release: gk-kong
       - name: bpm
         release: bpm
       - name: smoke-tests

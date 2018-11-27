@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+set -e
+
+PLUGINS_DIR=${BOSH_INSTALL_TARGET}/share/lua/5.1/kong/plugins
+
+mkdir -p "${PLUGINS_DIR}"
+cp -R "plugins/redirect" "${PLUGINS_DIR}/"

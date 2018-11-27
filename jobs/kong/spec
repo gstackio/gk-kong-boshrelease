@@ -209,3 +209,22 @@ properties:
 
       See: https://docs.konghq.com/0.14.x/clustering/#1-db_update_frequency-default-5s
     default: 5
+
+  extra_plugins:
+    description: |
+      Extra plugins to be loaded by Kong. The 'bundled' plugins are always
+      loaded.
+
+      See: https://docs.konghq.com/0.14.x/configuration/#plugins
+    default: []
+
+  extra_plugin_packages:
+    description: |
+      Extra BOSH packages to consider for loading LUA plugins.
+
+      For each extra package, the '/var/vcap/packages/{package}/share/lua/5.1'
+      directory will be added to the LUA path and taken into account when
+      loading LUA plugins.
+
+      See: https://docs.konghq.com/0.14.x/configuration/#lua_package_path
+    default: []

@@ -1,0 +1,7 @@
+---
+name: kong-redirect-plugin
+
+dependencies: []
+
+files:
+  - plugins/redirect/**

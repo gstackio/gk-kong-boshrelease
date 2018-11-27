@@ -1,0 +1,9 @@
+---
+name: kong-redirect-plugin
+
+templates: {}
+
+packages:
+  - kong-redirect-plugin
+
+properties: {}
