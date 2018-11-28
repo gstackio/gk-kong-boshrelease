@@ -10,7 +10,7 @@ function configure() {
     LUAROCKS_SHA256=1236a307ca5c556c4fed9fdbd35a7e0e80ccf063024becc8c3bf212f37ff0edf
 
     KONG_VERSION=0.14.1
-    KONG_SHA1=0585b2532db78557432a4bd15fcc4b8599cd71d6
+    KONG_SHA256=945a90568838ffb7ee89e6816576a26aae0e860b5ff0a4c396f4299062eb0001
 }
 
 function main() {
@@ -65,7 +65,7 @@ function download_luarocks() {
 function download_kong() {
     curl -fsSL "https://github.com/Kong/kong/archive/${KONG_VERSION}.tar.gz" \
         -o "kong-${KONG_VERSION}.tar.gz"
-    shasum -a 256 --check <<< "${KONG_SHA1}  kong-${KONG_VERSION}.tar.gz"
+    shasum -a 256 --check <<< "${KONG_SHA256}  kong-${KONG_VERSION}.tar.gz"
 }
 
 main "$@"
