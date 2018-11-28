@@ -22,4 +22,4 @@ sudo -u vcap -g vcap ln -sfn "${LOG_DIR}" "${DATA_DIR}/logs"
 # the 'bootstrap' node in the BOSH instance group.
 "${JOB_DIR}/bin/kong" migrations up --conf "${JOB_DIR}/config/kong.conf"
 
-<% end -%>
+<% end # spec.bootstrap -%>
