@@ -21,8 +21,8 @@ function main() {
 
     configure
 
-    mkdir -p "${RELEASE_DIR}/tmp"
-    pushd "${RELEASE_DIR}/tmp" > /dev/null
+    mkdir -p "${RELEASE_DIR}/tmp/blobs"
+    pushd "${RELEASE_DIR}/tmp/blobs" > /dev/null
 
         local blob_file
         set -x
