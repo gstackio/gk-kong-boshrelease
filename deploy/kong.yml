@@ -31,9 +31,15 @@ instance_groups:
     instances: 1
     azs: [z1, z2, z3]
     jobs:
+      - name: &kong_redirect_plugin_name kong-redirect-plugin
+        release: gk-kong
       - name: kong
         release: gk-kong
         properties:
+          extra_plugin_packages:
+            - *kong_redirect_plugin_name
+          extra_plugins:
+            - redirect
           proxy:
             tls:
               cert: ((kong_tls))
@@ -42,12 +48,6 @@ instance_groups:
               cert: ((kong_tls))
             basic_auth:
               password: ((kong_admin_password))
-          extra_plugins:
-            - redirect
-          extra_plugin_packages:
-            - kong-redirect-plugin
-      - name: kong-redirect-plugin
-        release: gk-kong
       - name: bpm
         release: bpm
       - name: smoke-tests
