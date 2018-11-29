@@ -18,8 +18,6 @@ instance_groups:
             roles:
               - name: kong
                 password: ((kong_db_password))
-                permissions:
-                  - "SUPERUSER"
                 tag: kong-db-tag
     persistent_disk_type: default
     stemcell: default
