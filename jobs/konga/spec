@@ -1,0 +1,50 @@
+---
+name: konga
+
+templates:
+  bin/pre-start: bin/pre-start
+  config/bpm.yml: config/bpm.yml
+  config/dot-sailsrc.json: config/dot-sailsrc.json
+  config/seeded-users.js: config/seeded-users.js
+  bin/bpm-prestart: bin/bpm-prestart
+  bin/konga: bin/konga
+
+packages:
+  - nodejs
+  - konga
+
+consumes:
+  - name: kong
+    type: kong
+  - name: postgres
+    type: database
+    optional: true
+
+properties:
+  log_level:
+    description: |
+      The expected log level for the Sails.js application that lies under
+      Konga. One of 'error', 'warn', 'info', 'debug', or 'silly'.
+    default: info
+  admin.username:
+    description: |
+      Username of the Konga admin.
+    default: admin
+  admin.password:
+    description: |
+      Password for the Konga admin.
+  admin.email:
+    description: |
+      Email address of the Konga admin user.
+    default: konga.admin@example.com
+  admin.first_name:
+    description: |
+      Optional first name of the Konga admin user.
+    default: ""
+  admin.last_name:
+    description: |
+      Optional last name of the Konga admin user.
+    default: ""
+  token_secret:
+    description: |
+      The secret that will be used to sign JWT tokens issued by Konga.

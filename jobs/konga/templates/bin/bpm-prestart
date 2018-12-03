@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+function prepend_datetime() {
+    awk -W interactive '{ system("echo -n [$(date +%FT%T%z)]"); print " " $0 }'
+}
+
+exec \
+    3>&1 \
+    4>&2 \
+    1> >(prepend_datetime >&3) \
+    2> >(prepend_datetime >&4)
+
+readonly JOB_NAME=konga
+readonly \
+    JOB_DIR=/var/vcap/jobs/${JOB_NAME} \
+    PKG_DIR=/var/vcap/packages/${JOB_NAME}
+
+
+
+# Create the fake HOME directory and link the .sailsrc config file there
+sudo -u vcap -g vcap mkdir -p "${HOME}"
+sudo -u vcap -g vcap ln -sfn "${JOB_DIR}/config/dot-sailsrc.json" "${HOME}/.sailsrc"
+
+
+
+<% if spec.bootstrap -%>
+
+# Run the data migrations for Konga. This apprears only in the BPM prestart
+# script of the 'bootstrap' node in the BOSH instance group.
+source /var/vcap/packages/nodejs/runtime.env
+# Note: we must be in the package directory where the 'node_modules/'
+# directory lives, in order to avoid this error:
+# "Could not find module: ejs in path: /etc/sv/monit/node_modules"
+cd "${PKG_DIR}" || exit 115
+sudo -u vcap -g vcap -E node ./bin/konga.js prepare
+
+<% end # spec.bootstrap -%>

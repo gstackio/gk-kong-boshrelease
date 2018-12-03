@@ -11,6 +11,13 @@ function configure() {
 
     KONG_VERSION=0.14.1
     KONG_SHA256=945a90568838ffb7ee89e6816576a26aae0e860b5ff0a4c396f4299062eb0001
+
+
+    NODEJS_VERSION=10.14.1
+    NODEJS_SHA256=b97b355f3774adbeb4ffce52e275029e767ba9f317f9eb573175410b6255919f
+
+    KONGA_VERSION=0.13.0
+    KONGA_SHA256=b8b9dbef77f393855d284cb5456b0bc972b7ed2a882eca449e2b17ce8df4ecb0
 }
 
 function main() {
@@ -35,6 +42,13 @@ function main() {
 
         blob_file="kong-${KONG_VERSION}.tar.gz"
         add_blob "kong" "${blob_file}" "kong/${blob_file}"
+
+
+        blob_file="node-v${NODEJS_VERSION}.tar.gz"
+        add_blob "nodejs" "${blob_file}" "nodejs/${blob_file}"
+
+        blob_file="konga-${KONGA_VERSION}.tar.gz"
+        add_blob "konga" "${blob_file}" "konga/${blob_file}"
 
     popd > /dev/null
 }
@@ -66,6 +80,18 @@ function download_kong() {
     curl -fsSL "https://github.com/Kong/kong/archive/${KONG_VERSION}.tar.gz" \
         -o "kong-${KONG_VERSION}.tar.gz"
     shasum -a 256 --check <<< "${KONG_SHA256}  kong-${KONG_VERSION}.tar.gz"
+}
+
+function download_nodejs() {
+    curl -fsSL "https://nodejs.org/download/release/latest-dubnium/node-v${NODEJS_VERSION}.tar.gz" \
+        -o "node-v${NODEJS_VERSION}.tar.gz"
+    shasum -a 256 --check <<< "${NODEJS_SHA256}  node-v${NODEJS_VERSION}.tar.gz"
+}
+
+function download_konga() {
+    curl -fsSL "https://github.com/pantsel/konga/archive/${KONGA_VERSION}.tar.gz" \
+        -o "konga-${KONGA_VERSION}.tar.gz"
+    shasum -a 256 --check <<< "${KONGA_SHA256}  konga-${KONGA_VERSION}.tar.gz"
 }
 
 main "$@"

@@ -1,0 +1,5 @@
+check process konga
+  with pidfile /var/vcap/sys/run/bpm/konga/konga.pid
+  start program "/var/vcap/jobs/bpm/bin/bpm start konga"
+  stop program "/var/vcap/jobs/bpm/bin/bpm stop konga"
+  group vcap

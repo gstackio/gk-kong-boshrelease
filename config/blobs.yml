@@ -2,10 +2,16 @@ kong/kong-0.14.1.tar.gz:
   size: 775812
   object_id: 6a6f8044-e3fa-4c85-681d-75109c28b0f3
   sha: 0585b2532db78557432a4bd15fcc4b8599cd71d6
+konga/konga-0.13.0.tar.gz:
+  size: 1903518
+  sha: 270c77a4657879e622b5cb4edbb4cd5eedb80090
 luarocks/luarocks-3.0.4.tar.gz:
   size: 205350
   object_id: 55c2518b-9645-494d-59ac-cf9c4747fe59
   sha: 86a270938d6aafd1af65b57a1cc527bb2745b8a6
+nodejs/node-v10.14.1.tar.gz:
+  size: 36252804
+  sha: 82789a0f15439d036bdbd46e4506d8f232efc074
 openresty/openresty-1.13.6.2.tar.gz:
   size: 4635916
   object_id: b86547a6-018a-4d2e-5ea5-a3e8150e4673

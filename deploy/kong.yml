@@ -2,7 +2,7 @@
 name: ((deployment_name))
 
 instance_groups:
-  - name: database
+  - name: db
     instances: 1
     azs: [z1]
     jobs:
@@ -14,11 +14,17 @@ instance_groups:
               - name: kong
                 citext: true
                 tag: kong-db-tag
+              - name: konga
+                citext: true
+                tag: konga-db-tag
             port: 5432
             roles:
               - name: kong
                 password: ((kong_db_password))
                 tag: kong-db-tag
+              - name: konga
+                password: ((konga_db_password))
+                tag: konga-db-tag
     persistent_disk_type: default
     stemcell: default
     vm_type: default
@@ -55,6 +61,24 @@ instance_groups:
     networks:
       - name: ((network_name))
 
+  - name: ui
+    instances: 1
+    azs: [z1, z2, z3]
+    jobs:
+      - name: konga
+        release: gk-kong
+        properties:
+          log_level: debug
+          token_secret: ((konga_token_secret))
+          admin:
+            password:  ((konga_admin_password))
+      - name: bpm
+        release: bpm
+    stemcell: default
+    vm_type: default
+    networks:
+      - name: ((network_name))
+
 variables:
   - name: kong_db_password
     type: password
@@ -73,6 +97,12 @@ variables:
       alternative_names:
         - "*.kong.((network_name)).((deployment_name)).bosh"
         - "127.0.0.1"
+  - name: konga_db_password
+    type: password
+  - name: konga_token_secret
+    type: password
+  - name: konga_admin_password
+    type: password
 
 features:
   use_dns_addresses: true

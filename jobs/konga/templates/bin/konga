@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+function prepend_datetime() {
+    awk -W interactive '{ system("echo -n [$(date +%FT%T%z)]"); print " " $0 }'
+}
+
+exec \
+    3>&1 \
+    4>&2 \
+    1> >(prepend_datetime >&3) \
+    2> >(prepend_datetime >&4)
+
+source /var/vcap/packages/nodejs/runtime.env
+source /var/vcap/packages/konga/runtime.env
+
+cd /var/vcap/packages/konga || exit 115
+
+exec npm run production

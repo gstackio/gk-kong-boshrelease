@@ -1,0 +1,102 @@
+---
+<%
+    require "json"
+    def esc(x)
+        x.to_json
+    end
+
+    require "uri"
+    def uri_esc(x)
+        URI.encode_www_form_component(x)
+    end
+-%>
+processes:
+  - name: konga
+    workdir: /var/vcap/packages/konga
+    hooks:
+      pre_start: /var/vcap/jobs/konga/bin/bpm-prestart
+    executable: /var/vcap/jobs/konga/bin/konga
+    ephemeral_disk: true
+    env:
+      HOME: /var/vcap/data/konga/home
+      PORT: 1337
+      NODE_ENV: production
+      KONGA_HOOK_TIMEOUT: 120000
+      KONGA_LOG_LEVEL: <%= esc(p("log_level")) %>
+      # sails_log__level: <%= esc(p("log_level")) %> # now gone to .sailsrc
+      TOKEN_SECRET: <%= esc(p("token_secret")) %>
+      STORAGE_PATH: /var/vcap/data/konga/kongadata/ # must end with a '/'
+      # sails_paths__public: /var/vcap/data/konga/sails.tmp/public    # must be in .sailrc
+      # sails_paths__tmp: /var/vcap/data/konga/sails.tmp              # must be in .sailrc
+      # sails_paths__views: /var/vcap/data/konga/views                # must be in .sailrc
+      # sails_log__filePath: /var/vcap/sys/log/konga/sailsjs-app.log  # must be in .sailrc
+      # sails_explicitHost: "" # TODO
+      # sails_sockets__onlyAllowOrigins: [] # TODO
+      #
+      # Note: currently, activating CSRF protection breaks Konga with a
+      # "TypeError: Cannot read property 'split' of undefined" error.
+      #
+      # See: https://0.12.sailsjs.com/documentation/reference/configuration/sails-config-csrf
+      #
+      # sails_csrf: true
+<%
+    if_link("kong") do |kong|
+    adm_username = kong.p("admin.basic_auth.username")
+    adm_password = kong.p("admin.basic_auth.password")
+    adm_path = kong.p("admin.service.route_path")
+
+    if kong.p("proxy.tls.enabled")
+        pxy_scheme = "https"
+        pxy_port = kong.p("proxy.tls.bind_port")
+    else
+        pxy_scheme = "http"
+        pxy_port = kong.p("proxy.bind_port")
+    end
+
+    main_address = kong.instances.first.address
+-%>
+      # KONG_ADMIN_URL: <%= esc("#{pxy_scheme}://#{uri_esc(adm_username)}:#{uri_esc(adm_password)}@#{uri_esc(main_address)}:#{uri_esc(pxy_port)}#{adm_path}") %>
+      sails_kong_admin_url: <%= esc("#{pxy_scheme}://#{uri_esc(adm_username)}:#{uri_esc(adm_password)}@#{uri_esc(main_address)}:#{uri_esc(pxy_port)}#{adm_path}") %>
+      KONGA_SEED_USER_DATA_SOURCE_FILE: /var/vcap/jobs/konga/config/seeded-users.js
+<%
+    end # if_link("kong")
+-%>
+<%
+    # Note: scaling horizontally a Sails.js application like Konga requires a
+    # Redis store in order to share sockets session data between backend
+    # nodes.
+    #
+    # See: config/sockets.js
+
+    if false # if_link("redis") do |redis|
+-%>
+  # See: https://0.12.sailsjs.com/documentation/reference/configuration/sails-config-sockets
+  # SOCKET_ADAPTER: "@sailshq/socket.io-redis" # or "socket.io-redis"?
+  # REDIS_HOST: "" # TODO
+  # REDIS_PORT: 6379
+  # REDIS_DB: "konga"
+  # REDIS_PASS: "" # TODO
+<%
+    end # if_link("redis")
+-%>
+<%
+    if_link("postgres") do |postgres|
+        db_role = postgres.p("databases.roles").find { |role| role["tag"] == "konga-db-tag" }
+        db = postgres.p("databases.databases").find { |db| db["tag"] == "konga-db-tag" }
+
+        db_host     = postgres.instances.first.address
+        db_port     = postgres.p("databases.port")
+        db_user     = db_role["name"]
+        db_password = db_role["password"]
+        db_database = db["name"]
+-%>
+      DB_ADAPTER: postgres
+      DB_URI: <%= esc("postgres://#{uri_esc(db_user)}:#{uri_esc(db_password)}@#{uri_esc(db_host)}:#{uri_esc(db_port)}/#{uri_esc(db_database)}") %>
+      DB_HOST: <%= esc(postgres.instances.first.address) %>
+      DB_PORT: <%= esc(postgres.p("databases.port")) %>
+      DB_USER: <%= esc(db_role["name"]) %>
+      DB_PASSWORD: <%= esc(db_role["password"]) %>
+      DB_DATABASE: <%= esc(db["name"]) %>
+<%
+    end # if_link("postgres")
+-%>

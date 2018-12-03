@@ -1,0 +1,26 @@
+<%
+    require "json"
+    def esc(x)
+        x.to_json
+    end
+-%>
+{
+  "generators": {
+    "modules": {
+
+    }
+  },
+  "hooks": {
+    "session" : false
+  },
+
+  "paths": {
+    "tmp": "/var/vcap/data/konga/sails.tmp",
+    "public": "/var/vcap/data/konga/sails.tmp/public",
+    "views": "/var/vcap/data/konga/views"
+  },
+  "log": {
+    "level": <%= esc(p("log_level")) %>,
+    "filePath": "/var/vcap/sys/log/konga/sailsjs-app.log"
+  }
+}

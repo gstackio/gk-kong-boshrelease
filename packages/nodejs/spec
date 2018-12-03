@@ -1,0 +1,8 @@
+---
+name: nodejs
+
+dependencies: []
+
+files:
+  - nodejs/node-v*.tar.gz
+  - nodejs/runtime.env

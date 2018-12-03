@@ -1,0 +1,10 @@
+---
+name: konga
+
+dependencies:
+  - nodejs
+
+files:
+  - konga/konga-*.tar.gz
+  - konga/runtime.env
+  - konga/tasks.patch

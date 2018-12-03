@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+
+set -e
+
+function _config() {
+    readonly KONGA_VERSION=0.13.0
+}
+
+function main() {
+    _config
+
+    _workaround_missing_libraries
+
+    tar -xf "konga/konga-${KONGA_VERSION}.tar.gz" \
+        --strip-components=1 \
+        -C "${BOSH_INSTALL_TARGET}"
+
+    source /var/vcap/packages/nodejs/runtime.env
+
+    # Note: we assume these are compile-time dependencies only, because they
+    # will be lost when the compilation VM is destroyed.
+    npm install -g bower gulp
+
+    pushd "${BOSH_INSTALL_TARGET}"
+        # Note: we use the '--unsafe-perm' flag to fix the 'cannot run in wd'
+        # error when running 'npm' as root user.
+        #
+        # See: https://stackoverflow.com/a/19132229
+        npm install --unsafe-perm
+
+        # Note: we add the '{ force: true }' option to the 'clean' task, which
+        # is required because the 'public' folder is synlinked to another
+        # directory within '/var/vcap/data/konga'.
+        patch -p1 < "${BOSH_COMPILE_TARGET}/konga/tasks.patch"
+
+        # Note: we need to copy these to the data directory and link the copy
+        # as the 'views' directory, so we move these original files to a
+        # different directory.
+        mv "views" "views.orig"
+    popd
+
+    cp -v "konga/runtime.env" "${BOSH_INSTALL_TARGET}/"
+}
+
+function _workaround_missing_libraries() {
+
+    # NOTE: We use the '-o APT::Sandbox::User=root' option as a workaround for
+    # this error: "Could not execute 'apt-key' to verify signature".
+    #
+    # See: https://github.com/cloudfoundry/bosh-linux-stemcell-builder/issues/39#issuecomment-418136627
+    apt -o APT::Sandbox::User=root update
+    apt install -y git python
+}
+
+main "$@"

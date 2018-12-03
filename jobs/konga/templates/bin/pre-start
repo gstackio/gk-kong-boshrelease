@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+
+function prepend_datetime() {
+    awk -W interactive '{ system("echo -n [$(date +%FT%T%z)]"); print " " $0 }'
+}
+
+exec \
+    3>&1 \
+    4>&2 \
+    1> >(prepend_datetime >&3) \
+    2> >(prepend_datetime >&4)
+
+
+
+readonly JOB_NAME=konga
+readonly \
+    DATA_DIR=/var/vcap/data/${JOB_NAME} \
+    PKG_DIR=/var/vcap/packages/${JOB_NAME}
+
+
+
+# Note: Grunt tasks in Konga are using the '.tmp' directory as a hardcoded
+# value. Thus it's not sufficient to customize this location with the
+# 'sails_paths__tmp' environment variable in 'bpm.yml' config file.
+#
+# To have Grunt copy files to the correct location, we need to create a
+# symbolic link outside the scope of BPM, when we are root on the host and not
+# in a namespaced BPM sandbox with restricted access to the filesystem.
+#
+# This requires the '{ force: true }' config to be activated in the 'clean'
+# Grunt task.
+rm -rf "${DATA_DIR}/sails.tmp"
+sudo -u vcap -g vcap mkdir -p "${DATA_DIR}/sails.tmp/public"
+ln -sfn "${DATA_DIR}/sails.tmp" "${PKG_DIR}/.tmp"
+
+# Note: Grunt is also writing to the 'views/' directory, and there is no
+# config to have it anywhere else. So we create a copy of the few defaut views
+# in our data directory, and let Grunt write the updated views there.
+#
+# Re-create the 'views/' directory copy, and link it from the package dir
+rm -rf "${DATA_DIR}/views"
+sudo -u vcap -g vcap cp -Rp "${PKG_DIR}/views.orig" "${DATA_DIR}/views"
+ln -sfn "${DATA_DIR}/views" "${PKG_DIR}/views"

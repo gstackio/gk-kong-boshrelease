@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+function _config() {
+    readonly NODEJS_VERSION=10.14.1
+}
+
+function main() {
+    _config
+    _setup
+
+    _workaround_missing_libraries
+
+    tar -xf "nodejs/node-v${NODEJS_VERSION}.tar.gz"
+
+    pushd "node-v${NODEJS_VERSION}"
+        ./configure --prefix="${BOSH_INSTALL_TARGET}"
+        make --jobs="${CORES_COUNT}"
+        make install
+    popd
+
+    cp -v "nodejs/runtime.env" "${BOSH_INSTALL_TARGET}/"
+}
+
+function _setup() {
+    # Detect # of CPUs so make jobs can be parallelized
+    readonly CORES_COUNT=$(grep -c ^processor /proc/cpuinfo)
+}
+
+function _workaround_missing_libraries() {
+
+    # NOTE: We use the '-o APT::Sandbox::User=root' option as a workaround for
+    # this error: "Could not execute 'apt-key' to verify signature".
+    #
+    # See: https://github.com/cloudfoundry/bosh-linux-stemcell-builder/issues/39#issuecomment-418136627
+    apt -o APT::Sandbox::User=root update
+    apt install -y python
+}
+
+main "$@"
