@@ -6,6 +6,7 @@ templates:
   config/bpm.yml: config/bpm.yml
   config/dot-sailsrc.json: config/dot-sailsrc.json
   config/seeded-users.js: config/seeded-users.js
+  config/trusted_ca_certs: config/trusted_ca_certs
   bin/bpm-prestart: bin/bpm-prestart
   bin/konga: bin/konga
 
@@ -48,3 +49,7 @@ properties:
   token_secret:
     description: |
       The secret that will be used to sign JWT tokens issued by Konga.
+  trusted_ca_certificates:
+    description: |
+      Custom Certificate Authority certificates to trust. Useful when the Kong
+      Admin API is served by a TLS certificate signed by an internal CA.

@@ -57,6 +57,7 @@ processes:
 -%>
       # KONG_ADMIN_URL: <%= esc("#{pxy_scheme}://#{uri_esc(adm_username)}:#{uri_esc(adm_password)}@#{uri_esc(main_address)}:#{uri_esc(pxy_port)}#{adm_path}") %>
       sails_kong_admin_url: <%= esc("#{pxy_scheme}://#{uri_esc(adm_username)}:#{uri_esc(adm_password)}@#{uri_esc(main_address)}:#{uri_esc(pxy_port)}#{adm_path}") %>
+      NODE_EXTRA_CA_CERTS: /var/vcap/jobs/konga/config/trusted_ca_certs
       KONGA_SEED_USER_DATA_SOURCE_FILE: /var/vcap/jobs/konga/config/seeded-users.js
 <%
     end # if_link("kong")

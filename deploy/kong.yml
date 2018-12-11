@@ -72,8 +72,15 @@ instance_groups:
           token_secret: ((konga_token_secret))
           admin:
             password:  ((konga_admin_password))
+          trusted_ca_certificates: |
+            ((kong_tls.ca))
       - name: bpm
         release: bpm
+      - name: ca_certs
+        release: os-conf
+        properties:
+          certs: |
+            ((kong_ca.certificate))
     stemcell: default
     vm_type: default
     networks:
@@ -132,3 +139,7 @@ releases:
     version: "30"
     url: https://bosh.io/d/github.com/cloudfoundry/postgres-release?v=30
     sha1: a798999d29b9f5aa12035cff907b26674b491200
+  - name: os-conf
+    version: "20.0.0"
+    url: https://bosh.io/d/github.com/cloudfoundry/os-conf-release?v=20.0.0
+    sha1: a60187f038d45e2886db9df82b72a9ab5fdcc49d
