@@ -20,6 +20,8 @@ processes:
     env:
       HOME: /var/vcap/data/konga/home
       PORT: 1337
+      SSL_CRT_PATH: /var/vcap/jobs/konga/tls/konga.crt
+      SSL_KEY_PATH: /var/vcap/jobs/konga/tls/konga.key
       NODE_ENV: production
       KONGA_HOOK_TIMEOUT: 120000
       KONGA_LOG_LEVEL: <%= esc(p("log_level")) %>

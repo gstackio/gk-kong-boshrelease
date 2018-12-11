@@ -9,6 +9,8 @@ templates:
   config/trusted_ca_certs: config/trusted_ca_certs
   bin/bpm-prestart: bin/bpm-prestart
   bin/konga: bin/konga
+  tls/konga.crt: tls/konga.crt
+  tls/konga.key: tls/konga.key
 
 packages:
   - nodejs
@@ -53,3 +55,14 @@ properties:
     description: |
       Custom Certificate Authority certificates to trust. Useful when the Kong
       Admin API is served by a TLS certificate signed by an internal CA.
+
+  tls.enabled:
+    description: |
+      Determines if the Kong admin User Interface should be listening for
+      HTTPS traffic.
+    default: true
+  tls.cert:
+    type: certificate
+    description: |
+      The TLS certificate and private key to use for the Kong admin User
+      Interface.

@@ -74,6 +74,8 @@ instance_groups:
           token_secret: ((konga_token_secret))
           admin:
             password:  ((konga_admin_password))
+          tls:
+            cert: ((kong_tls))
           trusted_ca_certificates: |
             ((kong_tls.ca))
       - name: bpm
@@ -106,6 +108,7 @@ variables:
       alternative_names:
         - "*.kong.((network_name)).((deployment_name)).bosh"
         - "127.0.0.1"
+        - "*.ui.((network_name)).((deployment_name)).bosh"
   - name: konga_db_password
     type: password
   - name: konga_token_secret
