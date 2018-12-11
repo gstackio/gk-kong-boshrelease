@@ -1,0 +1,61 @@
+---
+
+- path: /instance_groups/name=kong/jobs/name=kong/properties/admin
+  type: replace
+  value:
+    # We disable the Admin API on those nodes that will be specialized in
+    # handling data plane traffic.
+    http_enabled: false
+    tls: { enabled: false }
+
+- path: /instance_groups/name=kong/jobs/name=smoke-tests
+  # Note: smoke-tests wouldn't work when Admin API is disabled. So, we move
+  # the smoke tests to the 'kong-control' instance group instead.
+  type: remove
+
+
+
+- path: /instance_groups/name=kong-control
+  type: replace
+  value:
+    name: kong-control
+    instances: 1
+    azs: [z1, z2, z3]
+    jobs:
+      - name: &kong_redirect_plugin_name kong-redirect-plugin
+        release: gk-kong
+      - name: kong
+        release: gk-kong
+        provides:
+          kong: { as: &kong_admin_link kong-admin }
+        properties:
+          extra_plugin_packages:
+            - *kong_redirect_plugin_name
+          extra_plugins:
+            - redirect
+          proxy:
+            http_enabled: false
+            tls:
+              # We keep a proxy on the 'kong-control' instances only to expose
+              # the admin API with some access restriction.
+              #
+              # Actual data plane traffic is handled by the nodes from the
+              # 'kong' instance group above.
+              enabled: true
+              cert: ((kong_tls))
+          admin:
+            http_enabled: false
+            tls:
+              cert: ((kong_tls))
+            basic_auth:
+              password: ((kong_admin_password))
+      - name: bpm
+        release: bpm
+      - name: smoke-tests
+        release: gk-kong
+        consumes:
+          kong: { from: *kong_admin_link }
+    stemcell: default
+    vm_type: default
+    networks:
+      - name: ((network_name))

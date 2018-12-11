@@ -45,9 +45,11 @@ instance_groups:
           extra_plugins:
             - redirect
           proxy:
+            http_enabled: false
             tls:
               cert: ((kong_tls))
           admin:
+            http_enabled: false
             tls:
               cert: ((kong_tls))
             basic_auth:

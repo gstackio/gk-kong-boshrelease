@@ -33,10 +33,12 @@ provides:
     type: kong
     properties:
       - proxy.bind_port
+      - proxy.http_enabled
       - proxy.tls.enabled
       - proxy.tls.bind_port
       - proxy.tls.cert
       - admin.bind_port
+      - admin.http_enabled
       - admin.tls.enabled
       - admin.tls.bind_port
       - admin.tls.cert
@@ -48,18 +50,30 @@ provides:
 properties:
   proxy.bind_ip:
     description: |
-      IP address on which the API Gateway proxy should listen for HTTP
-      traffic.
+      IP address on which the API Gateway proxy should listen for web traffic
+      (HTTP or HTTPS).
     default: "0.0.0.0"
+  proxy.http_enabled:
+    description: |
+      Whether the API Gateway proxy should listen for unencrypted HTTP web
+      traffic on the port defined with 'proxy.bind_port'.
+    default: true
   proxy.bind_port:
     description: |
       Port on which the API Gateway proxy should listen for HTTP traffic.
+
+      Only meaningful when 'proxy.http_enabled' is 'true'.
     default: 8000
 
   proxy.tls.enabled:
     description: |
       Determines if the API Gateway proxy should be listening for HTTPS
       traffic.
+    default: true
+  proxy.tls.http2_enabled:
+    description: |
+      Determines if the API Gateway proxy should accept HTTP/2 connections
+      when serving HTTPS traffic.
     default: true
   proxy.tls.bind_port:
     description: |
@@ -86,16 +100,29 @@ properties:
 
   admin.bind_ip:
     description: |
-      IP address on which the Kong admin API should listen for HTTP traffic.
+      IP address on which the Kong admin API should listen for web traffic
+      (HTTP or HTTPS).
     default: "127.0.0.1"
+  admin.http_enabled:
+    description: |
+      Whether the Kong admin API should listen for unencrypted HTTP web
+      traffic on the port defined with 'admin.bind_port'.
+    default: true
   admin.bind_port:
     description: |
       Port on which the Kong admin API should listen for HTTP traffic.
+
+      Only meaningful when 'admin.http_enabled' is 'true'.
     default: 8001
 
   admin.tls.enabled:
     description: |
       Determines if the Kong admin API should be listening for HTTPS traffic.
+    default: true
+  admin.tls.http2_enabled:
+    description: |
+      Determines if the Kong admin API should accept HTTP/2 connections when
+      serving HTTPS traffic.
     default: true
   admin.tls.bind_port:
     description: |

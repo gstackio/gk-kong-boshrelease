@@ -17,6 +17,8 @@
 
     require "securerandom"
 
+    has_admin_api = p("admin.http_enabled") || p("admin.tls.enabled")
+
     if p("admin.tls.enabled")
         adm_scheme = "https"
         adm_port = p("admin.tls.bind_port")
@@ -67,7 +69,7 @@ function request() {
         "$@"
 }
 
-<% if spec.bootstrap -%>
+<% if has_admin_api && spec.bootstrap -%>
 
 # Create or update the Service for the Admin API
 request PUT "/services/${ADM_SERVICE_UUID_URLENC}" \
