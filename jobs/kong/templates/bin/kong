@@ -6,7 +6,17 @@
 # This wrapper is to be used instead of the original 'kong' CLI in all scipts,
 # like 'bpm.yml' and 'bpm-prestart'.
 
-set -e
+set -eo pipefail
+
+function prepend_datetime() {
+    awk -W interactive '{ system("echo -n [$(date +%FT%T%z)]"); print " " $0 }'
+}
+
+exec \
+    3>&1 \
+    4>&2 \
+    1> >(prepend_datetime >&3) \
+    2> >(prepend_datetime >&4)
 
 
 source /var/vcap/packages/openresty/runtime.env

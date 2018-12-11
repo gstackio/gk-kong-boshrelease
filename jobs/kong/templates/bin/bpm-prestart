@@ -1,6 +1,16 @@
 #!/usr/bin/env bash
 
-set -e
+set -eo pipefail
+
+function prepend_datetime() {
+    awk -W interactive '{ system("echo -n [$(date +%FT%T%z)]"); print " " $0 }'
+}
+
+exec \
+    3>&1 \
+    4>&2 \
+    1> >(prepend_datetime >&3) \
+    2> >(prepend_datetime >&4)
 
 readonly JOB_NAME=kong
 readonly \
