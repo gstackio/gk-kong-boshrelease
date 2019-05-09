@@ -21,7 +21,7 @@ meta:
     path:   (( concat meta.manifest.directory "/kong.yml" ))
     vars: |
       ---
-      deployment_name: kong
+      deployment_name: gk-kong-testflight
       network_name: default
     vars-pr: (( grab meta.manifest.vars ))
     operator_file_paths: "" # comma separated list relative to repo root
