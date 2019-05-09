@@ -1,0 +1,70 @@
+name: gk-kong
+version: 1.2.0
+commit_hash: f8fdcf1
+uncommitted_changes: false
+jobs:
+- name: kong
+  version: ce3d11052b43f4d94582d24cdf199de24d33dc78b0c7f04ce1ee178bdd806b65
+  fingerprint: ce3d11052b43f4d94582d24cdf199de24d33dc78b0c7f04ce1ee178bdd806b65
+  sha1: sha256:b3b317cb7025b6b735c1b5d6055b7bd09a5a4ee3430c63269a90ebbfb93412bf
+  packages:
+  - kong
+  - luarocks
+  - openresty
+- name: kong-redirect-plugin
+  version: 214197e768f39a4c633ef7e7b503386c69f58a106ad8eb99ee0740920e5e4689
+  fingerprint: 214197e768f39a4c633ef7e7b503386c69f58a106ad8eb99ee0740920e5e4689
+  sha1: sha256:13a53e48ba4ff54e98061e556cc640dc420606967cb1a87740c07f50d8789c32
+  packages:
+  - kong-redirect-plugin
+- name: konga
+  version: dece1a64057fed02b81d3baf12534c98884dcd4d42bf76a2380b0e700819cf27
+  fingerprint: dece1a64057fed02b81d3baf12534c98884dcd4d42bf76a2380b0e700819cf27
+  sha1: sha256:025429d307a0aa02483f515415dc4b1559448745c5dadbd68631beef40e11ff3
+  packages:
+  - nodejs
+  - konga
+- name: smoke-tests
+  version: 414b423d52be1ee5c9f4c48610a802ac163f8048850673d630d12bd4a822c0e3
+  fingerprint: 414b423d52be1ee5c9f4c48610a802ac163f8048850673d630d12bd4a822c0e3
+  sha1: sha256:ee6aef04b5b19ccf3a93f7ebbd7c7e8409c53c298d5515c46198a7795d9b6c60
+  packages: []
+packages:
+- name: kong
+  version: 596ae0afa9131c326a3f4c0bc7a62c8a2440a401a0889eb30fa9a1083faf952e
+  fingerprint: 596ae0afa9131c326a3f4c0bc7a62c8a2440a401a0889eb30fa9a1083faf952e
+  sha1: sha256:bfcc5985a628f53a62d1bb57deef47dea34667f9f631e6c81ce343108dabad2d
+  dependencies:
+  - luarocks
+  - openresty
+- name: kong-redirect-plugin
+  version: 1875542240f19339dbacd82ed78542544cc244eefcb4140cb98e9781552c0111
+  fingerprint: 1875542240f19339dbacd82ed78542544cc244eefcb4140cb98e9781552c0111
+  sha1: sha256:ad0540f9896f911d2f3eda6be2c82b67aae01a8e70ae51cbbacda45fbaf7760a
+  dependencies: []
+- name: konga
+  version: d7bda07ff43097a0ba51a068ea145c49fd3962828e790c0570d3ec0cff7ab18a
+  fingerprint: d7bda07ff43097a0ba51a068ea145c49fd3962828e790c0570d3ec0cff7ab18a
+  sha1: sha256:b1d1f094e59a388e25b92923132abb9fe97187d2aee11b967c128d59e77e8627
+  dependencies:
+  - nodejs
+- name: luarocks
+  version: a171f28c9b56b1cd27007a4f45b21e82907b33ce5ebe2609496f8f2a013bec54
+  fingerprint: a171f28c9b56b1cd27007a4f45b21e82907b33ce5ebe2609496f8f2a013bec54
+  sha1: sha256:b01ae627a4d1c328c9e958b184e2a6aa2e2f63906d2c2ae1b557779b5668f6b5
+  dependencies:
+  - openresty
+- name: nodejs
+  version: 9bbf34fdba89837443ba906f41074c989bcfc2bc55d8eb4f8a08d2bba44cc99b
+  fingerprint: 9bbf34fdba89837443ba906f41074c989bcfc2bc55d8eb4f8a08d2bba44cc99b
+  sha1: sha256:a7c0e13cecd3f42d768d2f7c28c490d9bfd071f8b320aabdbbaa0b8f0fdc65d8
+  dependencies: []
+- name: openresty
+  version: ea57739500b2829c9ee8076378c6e428c93e73cc70aa046129c50c63598e2733
+  fingerprint: ea57739500b2829c9ee8076378c6e428c93e73cc70aa046129c50c63598e2733
+  sha1: sha256:51efec83aa15f34538ef1278e37163f0ecd2c88856c6a653b5bd97bd55bc288f
+  dependencies: []
+license:
+  version: fa8c76e69c0d7a45f68807e8d5381bde68b3751ce779c6ecc1856045ecb1805a
+  fingerprint: fa8c76e69c0d7a45f68807e8d5381bde68b3751ce779c6ecc1856045ecb1805a
+  sha1: sha256:f3cf28973c0cddea256909bdcce05f6a0e64358ef3c1b68f32540117c6a0c367

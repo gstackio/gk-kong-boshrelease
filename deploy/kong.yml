@@ -133,12 +133,12 @@ update:
 
 releases:
 - name: gk-kong
-  sha1: 0634844831f5627f9168ef7648fe701548e34f95
+  sha1: 6a2babe8b3b0547069ea62811a3ef96ec613beea
   stemcell:
     os: ubuntu-xenial
     version: "315.13"
-  url: https://s3.eu-west-3.amazonaws.com/gk-kong-boshrelease/compiled-releases/gk-kong/gk-kong-1.1.0-ubuntu-xenial-315.13-20190509-213511-820272019-20190509213512.tgz
-  version: 1.1.0
+  url: https://github.com/gstackio/gk-kong-boshrelease/releases/download/v1.2.0/gk-kong-1.2.0.tgz
+  version: 1.2.0
 - name: bpm
   sha1: 41df19697d6a69d2552bc2c132928157fa91abe0
   url: https://bosh.io/d/github.com/cloudfoundry-incubator/bpm-release?v=1.0.4
