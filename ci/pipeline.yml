@@ -56,6 +56,8 @@ meta:
     deployment:    (( concat meta.name "-testflight" ))
     deployment-pr: (( concat meta.name "-testflight-pr" ))
 
+  test-errands: smoke-tests
+
   compiled-release:
     stemcell_version_family: "315"
 
