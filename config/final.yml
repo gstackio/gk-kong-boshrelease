@@ -1,6 +1,7 @@
 ---
 name: gk-kong
 blobstore:
-  provider: local
+  provider: s3
   options:
-    blobstore_path: final_blobs
+    bucket_name: gk-kong-boshrelease
+    region: eu-west-3
