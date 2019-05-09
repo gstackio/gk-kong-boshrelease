@@ -19,7 +19,10 @@ meta:
   pipeline: (( concat meta.name "-boshrelease" ))
   manifest:
     path:   (( concat meta.manifest.directory "/kong.yml" ))
-    vars:   "--- {}"
+    vars: |
+      ---
+      deployment_name: kong
+      network_name: default
     vars-pr: (( grab meta.manifest.vars ))
     operator_file_paths: "" # comma separated list relative to repo root
 
