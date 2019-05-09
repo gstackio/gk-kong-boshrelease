@@ -140,13 +140,13 @@ releases:
   url: https://s3.eu-west-3.amazonaws.com/gk-kong-boshrelease/compiled-releases/gk-kong/gk-kong-1.1.0-ubuntu-xenial-315.13-20190509-213511-820272019-20190509213512.tgz
   version: 1.1.0
 - name: bpm
-  sha1: 4b6ebfdaa467c04855528172b099e565d679e0f5
-  url: https://bosh.io/d/github.com/cloudfoundry-incubator/bpm-release?v=0.13.0
-  version: 0.13.0
+  sha1: 41df19697d6a69d2552bc2c132928157fa91abe0
+  url: https://bosh.io/d/github.com/cloudfoundry-incubator/bpm-release?v=1.0.4
+  version: 1.0.4
 - name: postgres
-  sha1: b9652c22cbc664d60af82b534624e3f63753feb5
-  url: https://bosh.io/d/github.com/cloudfoundry/postgres-release?v=32
-  version: "32"
+  sha1: 3dd10b417b21cfa3257f1cc891e9e46f02fefe16
+  url: https://bosh.io/d/github.com/cloudfoundry/postgres-release?v=36
+  version: "36"
 - name: os-conf
   sha1: a60187f038d45e2886db9df82b72a9ab5fdcc49d
   url: https://bosh.io/d/github.com/cloudfoundry/os-conf-release?v=20.0.0
