@@ -1,0 +1,43 @@
+---
+meta:
+  name:    gk-kong
+  target:  gk
+  url:     https://ci.gstack.io
+
+  test-errand: ""
+
+  initial_version: "1.2.0"
+
+  manifest:
+    directory: deploy
+
+  git:
+    email:  ((git-commit-email))
+    name:   ((git-commit-name))
+
+  bosh-lite:
+    target:   ((bosh-lite-environment))
+    cacert:   ((bosh-lite-ca-cert))
+    username: ((bosh-lite-client))
+    password: ((bosh-lite-client-secret))
+
+  aws:
+    bucket:      (( grab meta.pipeline ))
+    region_name: eu-west-3
+    access_key:  ((aws-access-key))
+    secret_key:  ((aws-secret-key))
+
+  github:
+    owner:  gstackio
+    repo:   (( grab meta.pipeline ))
+    branch: master
+    private_key:  ((github-private-key))
+    access_token: ((github-access-token))
+
+  slack:
+    webhook:       ((slack-webhook))
+    username:      ((slack-username))
+    icon:          ((slack-icon-url))
+    channel:       (( concat "#" meta.name "-boshrelease" ))
+    blob_success:  '(( concat ": New version of  was detected, and updated in master. <" meta.url "/teams//pipelines/| Cut a new release?>" ))'
+    blob_failure:  '(( concat ": :airplane_arriving: <" meta.url "/teams//pipelines//jobs//builds/| Failed to update the blob for >" ))'

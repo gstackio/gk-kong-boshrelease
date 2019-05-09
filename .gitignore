@@ -2,6 +2,7 @@
 /.final_builds/jobs/**/*.tgz
 /.final_builds/packages/**/*.tgz
 /blobs/
+/ci/secrets.yml
 /config/private.yml
 /dev_releases/
 /releases/*.tgz
