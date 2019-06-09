@@ -34,6 +34,8 @@ exec \
 readonly ADM_BASE_URI=<%= esc("#{pxy_scheme}://#{main_address}:#{pxy_port}#{adm_path}") %>
 readonly PXY_BASE_URI=<%= esc("#{pxy_scheme}://#{main_address}:#{pxy_port}") %>
 readonly API_NAME=smoke-tests-mockbin-api
+readonly SERVICE_ID=be7c18b4-8d1b-4368-b617-3661ccf663f0
+readonly ROUTE_ID=e4a90873-8af0-44e9-a31f-9b4b08df9919
 
 # setup cleanup framework
 defer_stack=()
@@ -46,6 +48,7 @@ function defer() {
     defer_stack=("${new_stack[@]}")
 }
 function run_deferred() {
+    set +e
     for fn in "${defer_stack[@]}"; do
         "${fn}"
     done
@@ -100,6 +103,7 @@ function cleanup_api() {
 }
 
 cleanup_api || true # cleanup any stale API
+echo
 
 # create an API
 admin POST "/apis/" \
@@ -125,5 +129,64 @@ proxy GET "/request?toto=titi&tata=tutu" \
         --data-raw '{"plip": "plop"}' \
     | tr -d '\r' | sed -e '/^$/,$d' # only display the HTTP response headers
 echo $'\n'
+
+
+
+function cleanup_service() {
+    # delete the Service
+    admin DELETE "/services/${SERVICE_ID}"
+}
+
+cleanup_service || true # cleanup any stale Service
+
+# create a backend Service
+admin PUT "/services/${SERVICE_ID}" \
+    --data "url=https://mockbin.org"
+echo $'\n'
+
+# delete the created Service uppon exit
+defer cleanup_service
+
+# wait for the Service to be created
+sleep $((<%= esc(link("kong").p("datastore.db_update_frequency_in_sec")) %> + 1))
+
+# get the created Service
+admin GET "/services/${SERVICE_ID}"
+echo $'\n'
+
+
+function cleanup_route() {
+    # delete the Route
+    admin DELETE "/routes/${ROUTE_ID}"
+}
+
+cleanup_route || true # cleanup any stale Route
+
+# create a backend Route
+admin PUT "/routes/${ROUTE_ID}" \
+    --data "hosts=example.org" \
+    --data "service.id=${SERVICE_ID}"
+echo $'\n'
+
+# delete the created Route uppon exit
+defer cleanup_route
+
+# wait for the Route to be created
+sleep $((<%= esc(link("kong").p("datastore.db_update_frequency_in_sec")) %> + 1))
+
+# get the created Route
+admin GET "/routes/${ROUTE_ID}"
+echo $'\n'
+
+
+# send a request through the Route and Service
+proxy GET "/request?toto=titi&tata=tutu" \
+        --header "Host: example.org" \
+        --header "Content-Type: application/json" \
+        --data-raw '{"plip": "plop"}' \
+    | tr -d '\r' | sed -e '/^$/,$d' # only display the HTTP response headers
+echo $'\n'
+
+
 
 exit 0
