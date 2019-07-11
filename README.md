@@ -93,7 +93,7 @@ clustered for High Availability), that has a working BOSH deployment
 This is a reboot verion of the [Kong CE BOSH Release][kong_ce_release] which
 in turn was a fork of the community's [Kong release][kong_release].
 
-As [explained in the fork][design_notes], we have abandonned the non-hermetic,
+As [explained in the fork][design_notes], we have abandoned the non-hermetic,
 non-reproducible, and thus non-production-ready Docker design.
 
 [kong_ce_release]: https://github.com/gstackio/kong-ce-boshrelease
