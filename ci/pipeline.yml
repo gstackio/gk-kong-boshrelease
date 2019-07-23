@@ -23,7 +23,10 @@ meta:
       ---
       deployment_name: gk-kong-testflight
       network_name: default
-    vars-pr: (( grab meta.manifest.vars ))
+    vars-pr: |
+      ---
+      deployment_name: gk-kong-testflight-pr
+      network_name: default
     operator_file_paths: "" # comma separated list relative to repo root
 
   git:
