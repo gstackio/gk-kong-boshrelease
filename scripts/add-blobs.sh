@@ -3,18 +3,21 @@
 set -e
 
 function configure() {
-    OPENRESTY_VERSION=1.13.6.2
-    OPENRESTY_SHA256=946e1958273032db43833982e2cec0766154a9b5cb8e67868944113208ff2942
+    OPENRESTY_VERSION=1.13.6.1
+    OPENRESTY_SHA256=d1246e6cfa81098eea56fb88693e980d3e6b8752afae686fab271519b81d696b
 
-    LUAROCKS_VERSION=3.0.4
-    LUAROCKS_SHA256=1236a307ca5c556c4fed9fdbd35a7e0e80ccf063024becc8c3bf212f37ff0edf
+    OPENRESTY_PATCHES_VERSION=6723044 # master as of 2019-09-16
+    OPENRESTY_PATCHES_SHA256=63ec600d82f268b228c380933f08751983082b888012bf444978296f82acec62
 
-    KONG_VERSION=0.14.1
-    KONG_SHA256=945a90568838ffb7ee89e6816576a26aae0e860b5ff0a4c396f4299062eb0001
+    LUAROCKS_VERSION=3.1.3
+    LUAROCKS_SHA256=c573435f495aac159e34eaa0a3847172a2298eb6295fcdc35d565f9f9b990513
+
+    KONG_VERSION=0.15.0
+    KONG_SHA256=6c4fb2ff7a0c7dbe824607a5682a87f688a7a89d54ee34564e365bdf7fdc135d
 
 
-    NODEJS_VERSION=10.14.1
-    NODEJS_SHA256=b97b355f3774adbeb4ffce52e275029e767ba9f317f9eb573175410b6255919f
+    NODEJS_VERSION=10.16.3
+    NODEJS_SHA256=db5a5e03a815b84a1266a4b48bb6a6d887175705f84fd2472f0d28e5e305a1f8
 
     KONGA_VERSION=0.13.0
     KONGA_SHA256=b8b9dbef77f393855d284cb5456b0bc972b7ed2a882eca449e2b17ce8df4ecb0
@@ -36,6 +39,9 @@ function main() {
 
         blob_file="openresty-${OPENRESTY_VERSION}.tar.gz"
         add_blob "openresty" "${blob_file}" "openresty/${blob_file}"
+
+        blob_file="openresty-patches-${OPENRESTY_PATCHES_VERSION}.tar.gz"
+        add_blob "openresty_patches" "${blob_file}" "openresty/${blob_file}"
 
         blob_file="luarocks-${LUAROCKS_VERSION}.tar.gz"
         add_blob "luarocks" "${blob_file}" "luarocks/${blob_file}"
@@ -68,6 +74,12 @@ function download_openresty() {
     curl -fsSL "https://openresty.org/download/openresty-${OPENRESTY_VERSION}.tar.gz" \
         -o "openresty-${OPENRESTY_VERSION}.tar.gz"
     shasum -a 256 --check <<< "${OPENRESTY_SHA256}  openresty-${OPENRESTY_VERSION}.tar.gz"
+}
+
+function download_openresty_patches() {
+    curl -fsSL "https://github.com/Kong/openresty-patches/archive/${OPENRESTY_PATCHES_VERSION}.tar.gz" \
+        -o "openresty-patches-${OPENRESTY_PATCHES_VERSION}.tar.gz"
+    shasum -a 256 --check <<< "${OPENRESTY_PATCHES_SHA256}  openresty-patches-${OPENRESTY_PATCHES_VERSION}.tar.gz"
 }
 
 function download_luarocks() {

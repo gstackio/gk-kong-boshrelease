@@ -9,6 +9,7 @@ templates:
   bin/bpm-prestart: bin/bpm-prestart
   bin/kong: bin/kong
   bin/post-start: bin/post-start
+  bin/post-deploy: bin/post-deploy
   config/kong.conf: config/kong.conf
   tls/proxy.crt: tls/proxy.crt
   tls/proxy.key: tls/proxy.key

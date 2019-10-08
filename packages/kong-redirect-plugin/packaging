@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -e
+set -ueo pipefail
 
 PLUGINS_DIR=${BOSH_INSTALL_TARGET}/share/lua/5.1/kong/plugins
 

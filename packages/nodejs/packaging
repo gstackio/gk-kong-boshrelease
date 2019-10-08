@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
-set -eo pipefail
+set -ueo pipefail
 
 function _config() {
-    readonly NODEJS_VERSION=10.14.1
+    readonly NODEJS_VERSION=10.16.3
 }
 
 function main() {
@@ -34,8 +34,8 @@ function _workaround_missing_libraries() {
     # this error: "Could not execute 'apt-key' to verify signature".
     #
     # See: https://github.com/cloudfoundry/bosh-linux-stemcell-builder/issues/39#issuecomment-418136627
-    apt -o APT::Sandbox::User=root update
-    apt install -y python
+    apt-get --option APT::Sandbox::User="root" update
+    apt-get --assume-yes install "python"
 }
 
 main "$@"

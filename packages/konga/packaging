@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -e
+set -ueo pipefail
 
 function _config() {
     readonly KONGA_VERSION=0.13.0
@@ -48,8 +48,8 @@ function _workaround_missing_libraries() {
     # this error: "Could not execute 'apt-key' to verify signature".
     #
     # See: https://github.com/cloudfoundry/bosh-linux-stemcell-builder/issues/39#issuecomment-418136627
-    apt -o APT::Sandbox::User=root update
-    apt install -y git python
+    apt-get --option APT::Sandbox::User="root" update
+    apt-get --assume-yes install "git" "python"
 }
 
 main "$@"

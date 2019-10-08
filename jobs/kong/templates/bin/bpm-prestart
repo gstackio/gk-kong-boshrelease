@@ -30,6 +30,15 @@ sudo -u vcap -g vcap mkdir -p "${DATA_DIR}/.cache/luarocks"
 
 <% if spec.bootstrap -%>
 
+set +e
+"${JOB_DIR}/bin/kong" migrations list --conf "${JOB_DIR}/config/kong.conf"
+status_code=$?
+set -e
+
+if [[ ${status_code} -eq 3 ]]; then
+	"${JOB_DIR}/bin/kong" migrations bootstrap --conf "${JOB_DIR}/config/kong.conf"
+fi
+
 # Run Kong's data migrations. This apprears only in the BPM prestart script of
 # the 'bootstrap' node in the BOSH instance group.
 "${JOB_DIR}/bin/kong" migrations up --conf "${JOB_DIR}/config/kong.conf"

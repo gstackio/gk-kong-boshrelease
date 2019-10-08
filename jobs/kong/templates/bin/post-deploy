@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+function prepend_datetime() {
+  awk -W interactive '{ system("echo -n [$(date +%FT%T%z)]"); print " " $0 }'
+}
+
+exec \
+    3>&1 \
+    4>&2 \
+    1> >(prepend_datetime >&3) \
+    2> >(prepend_datetime >&4)
+
+readonly JOB_NAME=kong
+readonly \
+    JOB_DIR=/var/vcap/jobs/${JOB_NAME}
+
+<% if spec.bootstrap -%>
+
+# Finish Kong's data migrations. This apprears only in the post-deploy script
+# of the 'bootstrap' node in the BOSH instance group.
+"${JOB_DIR}/bin/kong" migrations finish --conf "${JOB_DIR}/config/kong.conf"
+
+<% end # spec.bootstrap -%>

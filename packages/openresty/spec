@@ -5,4 +5,5 @@ dependencies: []
 
 files:
   - openresty/openresty-*.tar.gz
+  - openresty/openresty-patches-*.tar.gz
   - openresty/runtime.env

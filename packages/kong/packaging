@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
-set -e
+set -ueo pipefail
 
 function _config() {
-    readonly KONG_VERSION=0.14.1
+    readonly KONG_VERSION=0.15.0
 }
 
 function main() {
@@ -35,8 +35,8 @@ function _workaround_missing_libraries() {
     # this error: "Could not execute 'apt-key' to verify signature".
     #
     # See: https://github.com/cloudfoundry/bosh-linux-stemcell-builder/issues/39#issuecomment-418136627
-    apt -o APT::Sandbox::User=root update
-    apt install -y git
+    apt-get --option APT::Sandbox::User="root" update
+    apt-get --assume-yes install "git"
 }
 
 main "$@"

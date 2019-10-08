@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 
-set -e
+set -ueo pipefail
 
 function _config() {
-    readonly OPENRESTY_VERSION=1.13.6.2
+    readonly OPENRESTY_VERSION=1.13.6.1
+    readonly OPENRESTY_PATCHES_VERSION=6723044 # master as of 2019-09-16
 }
 
 function main() {
@@ -12,9 +13,16 @@ function main() {
     _workaround_missing_libraries
 
     tar -xf "openresty/openresty-${OPENRESTY_VERSION}.tar.gz"
+    tar -xf "openresty/openresty-patches-${OPENRESTY_PATCHES_VERSION}.tar.gz"
 
     readonly CORES_COUNT=$(grep -c ^processor /proc/cpuinfo)
     pushd "openresty-${OPENRESTY_VERSION}"
+        pushd "bundle"
+            for patch_file in "../../openresty-patches-${OPENRESTY_PATCHES_VERSION}"*"/patches/${OPENRESTY_VERSION}/"*".patch"; do
+                patch -p1 < "${patch_file}"
+            done
+        popd
+
         ./configure -j${CORES_COUNT} \
             --prefix="${BOSH_INSTALL_TARGET}" \
             --with-pcre-jit \
@@ -42,16 +50,17 @@ function _workaround_missing_libraries() {
     # this error: "Could not execute 'apt-key' to verify signature".
     #
     # See: https://github.com/cloudfoundry/bosh-linux-stemcell-builder/issues/39#issuecomment-418136627
-    apt -o APT::Sandbox::User=root update
-    apt install -y libpcre3-dev
+    apt-get --option APT::Sandbox::User="root" update
 
-    # In case any further Stemcell version removes somu utilities we had when
-    # writing this script, we install here all the required packages, as
-    # advised in "Debian and Ubuntu users" section of documentation.
+    # In case any further Stemcell version stops providing some utilities we
+    # had when writing this script, we install here all the required packages,
+    # as advised in "Debian and Ubuntu users" section of documentation)
+    # instead of only "libpcre3-dev" (that was the only one actually missing
+    # at the time this script was written).
     #
     # See: https://openresty.org/en/installation.html
-    apt-get install -y libpcre3-dev \
-        libssl-dev perl make build-essential curl
+    apt-get --assume-yes install "libpcre3-dev" \
+        "libssl-dev" "perl" "make" "build-essential" "curl"
 }
 
 main "$@"
