@@ -97,10 +97,10 @@ jobs:
     - name: main
       do:
       - name: get
-        aggregate:
+        in_parallel:
         - { get: git, trigger: true }
       - name: testflights
-        aggregate:
+        in_parallel:
         - name: testflight
           task: testflight
           config:
@@ -143,7 +143,7 @@ jobs:
     - name: main
       do:
       - name: get
-        aggregate:
+        in_parallel:
           - { get: git-pull-requests, trigger: true, version: every }
       - name: pending-status
         put: git-pull-requests
@@ -151,7 +151,7 @@ jobs:
           path: git-pull-requests
           status: pending
       - name: testflights
-        aggregate:
+        in_parallel:
         - name: testflight
           task: testflight
           config:
@@ -224,7 +224,7 @@ jobs:
     serial: true
     plan:
     - do:
-      - aggregate:
+      - in_parallel:
           - { get: git,     trigger: true,  passed: [testflight] }
           - { get: version, trigger: true, params: {pre: rc} }
       - task: release-notes
@@ -314,7 +314,7 @@ jobs:
     plan:
     - do:
       - name: inputs
-        aggregate:
+        in_parallel:
           - { get: version, passed: [rc], params: {bump: final} }
           - { get: git,     passed: [rc] }
       - name: release
@@ -371,7 +371,7 @@ jobs:
         params:
           bump: patch
       - name: notify
-        aggregate:
+        in_parallel:
         - put: notify
           params:
             channel:  (( grab meta.slack.channel ))
@@ -388,7 +388,7 @@ jobs:
 
   - name: (( concat "compile-release-" meta.compiled-release.stemcell_version_family ))
     plan:
-      - aggregate:
+      - in_parallel:
         - get: git
         - get: github
           trigger: true
@@ -423,7 +423,7 @@ jobs:
 
   - name: use-compiled-releases
     plan:
-      - aggregate:
+      - in_parallel:
         - get: git
         - get: github
           passed: [ (( concat "compile-release-" meta.compiled-release.stemcell_version_family )) ]
