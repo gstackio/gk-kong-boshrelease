@@ -59,3 +59,11 @@
     vm_type: default
     networks:
       - name: ((network_name))
+
+
+
+# The Konga UI has to target the 'kong-control' instance group
+- path: /instance_groups/name=ui/jobs/name=konga/consumes?/kong
+  type: replace
+  value:
+    from: *kong_admin_link
