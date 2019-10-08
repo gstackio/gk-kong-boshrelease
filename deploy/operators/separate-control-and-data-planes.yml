@@ -15,7 +15,7 @@
 
 
 
-- path: /instance_groups/name=kong-control
+- path: /instance_groups/name=kong-control?
   type: replace
   value:
     name: kong-control
