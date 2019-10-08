@@ -6,6 +6,7 @@
   - Postgres release to v39
   - BPM release to v1.1.3
   - os-conf release to v21.0.0
+- Added a `disable-tls.yml` ops-file, as HTTP-only is a supported use-case, and adde a testflight in CI for this setup.
 
 ### Caveats
 

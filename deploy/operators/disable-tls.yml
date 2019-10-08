@@ -1,0 +1,17 @@
+---
+
+- path: /instance_groups/name=kong/jobs/name=kong/properties/admin?/http_enabled
+  type: replace
+  value: true
+
+- path: /instance_groups/name=kong/jobs/name=kong/properties/admin?/tls/enabled
+  type: replace
+  value: false
+
+- path: /instance_groups/name=kong/jobs/name=kong/properties/proxy?/http_enabled
+  type: replace
+  value: true
+
+- path: /instance_groups/name=kong/jobs/name=kong/properties/proxy?/tls/enabled
+  type: replace
+  value: false

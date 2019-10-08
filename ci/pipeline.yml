@@ -23,11 +23,16 @@ meta:
       ---
       deployment_name: gk-kong-testflight
       network_name: default
+    vars-no-tls: |
+      ---
+      deployment_name: gk-kong-testflight-no-tls
+      network_name: default
     vars-pr: |
       ---
       deployment_name: gk-kong-testflight-pr
       network_name: default
     operator_file_paths: "" # comma separated list relative to repo root
+    operator_file_paths-no-tls: "deploy/operators/disable-tls.yml"
 
   git:
     email:  (( param "Please provide the git email for automated commits" ))
@@ -56,8 +61,9 @@ meta:
     cacert:     (( param "Please specify the BOSH Director Root CA cert" ))
     username:   admin
     password:   (( param "Please specify the BOSH Director admin password" ))
-    deployment:    (( concat meta.name "-testflight" ))
-    deployment-pr: (( concat meta.name "-testflight-pr" ))
+    deployment:        (( concat meta.name "-testflight" ))
+    deployment-no-tls: (( concat meta.name "-testflight-no-tls" ))
+    deployment-pr:     (( concat meta.name "-testflight-pr" ))
 
   test-errands: smoke-tests
 
@@ -128,6 +134,33 @@ jobs:
               MANIFEST_PATH:        (( grab meta.manifest.path ))
               MANIFEST_VARS:        (( grab meta.manifest.vars ))
               MANIFEST_OP_PATHS:    (( grab meta.manifest.operator_file_paths ))
+        - name: testflight-no-tls
+          task: testflight
+          config:
+            platform: linux
+            image_resource:
+              type: docker-image
+              source:
+                repository: (( grab meta.image.name ))
+                tag:        (( grab meta.image.tag ))
+            inputs:
+              - { name: git }
+            run:
+              path: ./git/ci/scripts/testflight
+              args: []
+            params:
+              REPO_ROOT:            git
+              BOSH_ENVIRONMENT:     (( grab meta.bosh-lite.target ))
+              BOSH_CA_CERT:         (( grab meta.bosh-lite.cacert ))
+              BOSH_CLIENT:          (( grab meta.bosh-lite.username ))
+              BOSH_CLIENT_SECRET:   (( grab meta.bosh-lite.password ))
+              BOSH_DEPLOYMENT:      (( grab meta.bosh-lite.deployment-no-tls ))
+              TEST_ERRANDS:         (( grab meta.test-errands || meta.test-errand || ~ ))
+              AWS_ACCESS_KEY:       (( grab meta.aws.access_key ))
+              AWS_SECRET_KEY:       (( grab meta.aws.secret_key ))
+              MANIFEST_PATH:        (( grab meta.manifest.path ))
+              MANIFEST_VARS:        (( grab meta.manifest.vars-no-tls ))
+              MANIFEST_OP_PATHS:    (( grab meta.manifest.operator_file_paths-no-tls ))
       on_failure:
         put: notify
         params:
