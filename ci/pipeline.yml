@@ -62,7 +62,7 @@ meta:
   test-errands: smoke-tests
 
   compiled-release:
-    stemcell_version_family: "315"
+    stemcell_version_family: "456"
 
   slack:
     webhook:       (( param "Please specify your Slack Incoming Webhook Integration URL" ))

@@ -2,6 +2,7 @@
 
 - Improved smoke tests, now covering a new Route+Service test case.
 - Bumped the Postgres release to v37 in default deployment manifest.
+- Compiled releases are now built on top of the latest stemcell family v456.x
 
 ### Caveats
 
