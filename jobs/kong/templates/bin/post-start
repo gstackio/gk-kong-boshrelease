@@ -18,24 +18,30 @@
     require "securerandom"
 
     has_admin_api = p("admin.http_enabled") || p("admin.tls.enabled")
-
-    if p("admin.tls.enabled")
-        adm_scheme = "https"
-        adm_port = p("admin.tls.bind_port")
+    if !has_admin_api || !spec.bootstrap
+%>
+# Note: this 'post-start' script contains code anly on bootstraps nodes and
+# when amin API is enabled.
+<%
     else
-        adm_scheme = "http"
-        adm_port = p("admin.bind_port")
-    end
-    adm_base_uri = "#{adm_scheme}://127.0.0.1:#{uri_esc(adm_port)}"
 
-    adm_service_uuid = p("admin.service.uuid")
-    adm_service_name = "kong-admin-api"
-    adm_route_uuid = p("admin.service.route_uuid")
-    adm_route_path = p("admin.service.route_path")
+        if p("admin.tls.enabled")
+            adm_scheme = "https"
+            adm_port = p("admin.tls.bind_port")
+        else
+            adm_scheme = "http"
+            adm_port = p("admin.bind_port")
+        end
+        adm_base_uri = "#{adm_scheme}://127.0.0.1:#{uri_esc(adm_port)}"
 
-    adm_consumer_uuid = p("admin.basic_auth.consumer_uuid")
-    adm_username = p("admin.basic_auth.username")
-    adm_password = p("admin.basic_auth.password")
+        adm_service_uuid = p("admin.service.uuid")
+        adm_service_name = "kong-admin-api"
+        adm_route_uuid = p("admin.service.route_uuid")
+        adm_route_path = p("admin.service.route_path")
+
+        adm_consumer_uuid = p("admin.basic_auth.consumer_uuid")
+        adm_username = p("admin.basic_auth.username")
+        adm_password = p("admin.basic_auth.password")
 -%>
 
 # If a command fails, in a pipeline or not, exit immediately
@@ -69,7 +75,6 @@ function request() {
         "$@"
 }
 
-<% if has_admin_api && spec.bootstrap -%>
 
 # Create or update the Service for the Admin API
 request PUT "/services/${ADM_SERVICE_UUID_URLENC}" \
@@ -154,6 +159,6 @@ else
     set -x
 fi
 
-<% end # spec.bootstrap -%>
+<% end # has_admin_api && spec.bootstrap -%>
 
 exit 0
