@@ -18,8 +18,18 @@ readonly \
 
 <% if spec.bootstrap -%>
 
-# Finish Kong's data migrations. This apprears only in the post-deploy script
-# of the 'bootstrap' node in the BOSH instance group.
-"${JOB_DIR}/bin/kong" migrations finish --conf "${JOB_DIR}/config/kong.conf"
+# Finish Kong's data migrations if necessary. This apprears only in the
+# post-deploy script of the 'bootstrap' node in the BOSH instance group.
+
+set +e
+"${JOB_DIR}/bin/kong" migrations list --conf "${JOB_DIR}/config/kong.conf"
+status_code=$?
+set -e
+
+if [[ ${status_code} -eq 4 ]]; then
+    echo "INFO: finishing Kong database migrations"
+	"${JOB_DIR}/bin/kong" migrations finish --conf "${JOB_DIR}/config/kong.conf"
+fi
+
 
 <% end # spec.bootstrap -%>

@@ -30,17 +30,50 @@ sudo -u vcap -g vcap mkdir -p "${DATA_DIR}/.cache/luarocks"
 
 <% if spec.bootstrap -%>
 
+# Run Kong's data migrations. This apprears only in the BPM prestart script of
+# the 'bootstrap' node in the BOSH instance group.
+
 set +e
 "${JOB_DIR}/bin/kong" migrations list --conf "${JOB_DIR}/config/kong.conf"
 status_code=$?
 set -e
 
-if [[ ${status_code} -eq 3 ]]; then
-	"${JOB_DIR}/bin/kong" migrations bootstrap --conf "${JOB_DIR}/config/kong.conf"
+if [[ ${status_code} -eq 0 ]]; then
+    echo "INFO: the Kong database is up-to-date. No pending migrations," \
+        "and no need for any finishing. Nothing to do, moving on."
 fi
 
-# Run Kong's data migrations. This apprears only in the BPM prestart script of
-# the 'bootstrap' node in the BOSH instance group.
-"${JOB_DIR}/bin/kong" migrations up --conf "${JOB_DIR}/config/kong.conf"
+if [[ ${status_code} -eq 1 || ${status_code} -eq 2 || ${status_code} -gt 5 ]]; then
+    echo "ERROR: database migrations list returned the unexpected status" \
+        "code '${status_code}'. Aborting."
+    exit ${status_code}
+fi
+
+if [[ ${status_code} -eq 3 ]]; then
+    echo "INFO: bootstrapping the Kong database"
+    set +e
+    "${JOB_DIR}/bin/kong" migrations bootstrap --conf "${JOB_DIR}/config/kong.conf"
+    status_code=$?
+    set -e
+    if [[ ${status_code} -eq 1 ]]; then
+        echo "INFO: database bootstrap has failed, but it may be because" \
+            "the database already exists. Continuing."
+    elif [[ ${status_code} -gt 1 ]]; then
+        echo "ERROR: database bootstrap has failed with status code" \
+            "'${status_code}'. Aborting."
+        exit ${status_code}
+    fi
+    status_code=5 # run any pending migrations as next step
+fi
+
+if [[ ${status_code} -eq 4 ]]; then
+    echo "INFO: database migrations were already applied to the Kong database," \
+        "and only need being finished. Nothing to do, moving on."
+fi
+
+if [[ ${status_code} -eq 5 ]]; then
+    echo "INFO: applying pending migrations to the Kong database"
+    "${JOB_DIR}/bin/kong" migrations up --conf "${JOB_DIR}/config/kong.conf"
+fi
 
 <% end # spec.bootstrap -%>
