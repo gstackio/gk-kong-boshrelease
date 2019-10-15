@@ -90,7 +90,7 @@ request PUT "/routes/${ADM_ROUTE_UUID_URLENC}" \
             "protocols"      => [ p("proxy.tls.enabled") ? "https" : "http" ],
             "paths"          => [ adm_route_path ],
             "regex_priority" => 100,
-            "service" => { "id" => adm_service_uuid, },
+            "service"        => { "id" => adm_service_uuid, },
         })) %> \
     --include
 
@@ -101,11 +101,11 @@ if grep -qF '"total":0' <<< "${existing_basic_auth_plugins}"; then
     # Enable the 'Basic Authentication' plugin on the Admin API Service
     request PUT "/plugins" \
         --data-raw <%= sh_esc(js_esc({
-                "name"   => "basic-auth",
-                "config" => {
+                "name"    => "basic-auth",
+                "service" => { "id" => adm_service_uuid },
+                "config"  => {
                     "hide_credentials" => true,
                 },
-                "service_id" => adm_service_uuid,
             })) %> \
         --include
 else
@@ -115,14 +115,14 @@ else
     # Update the 'Basic Authentication' plugin on the Admin API Service
     request PATCH "/plugins/${plugin_uuid}" \
         --data-raw <%= sh_esc(js_esc({
-                "name"        => "basic-auth",
-                "consumer_id" => nil,
-                "service_id"  => adm_service_uuid,
-                "route_id"    => nil,
-                "config" => {
+                "name"     => "basic-auth",
+                "consumer" => nil,
+                "service"  => { "id" => adm_service_uuid },
+                "route"    => nil,
+                "enabled"  => true,
+                "config"   => {
                     "hide_credentials" => true,
                 },
-                "enabled" => true,
             })) %> \
         --include
 fi
