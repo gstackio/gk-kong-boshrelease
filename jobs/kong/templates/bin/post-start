@@ -110,7 +110,8 @@ if grep -qF '"total":0' <<< "${existing_basic_auth_plugins}"; then
         --include
 else
     # FIXME: using 'jq' is a must here
-    plugin_uuid=$(sed -rne 's/^.*[{,]"id":"([0-9A-Fa-f-]+)"[},].*$/\1/p' <<< "${existing_basic_auth_plugins}")
+    plugin_uuid=$(sed -rne 's/^(\{|.*,)"id":"([0-9A-Fa-f-]+)"(,.*|\})$/\2/p' \
+                        <<< "${existing_basic_auth_plugins}")
 
     # Update the 'Basic Authentication' plugin on the Admin API Service
     request PATCH "/plugins/${plugin_uuid}" \
