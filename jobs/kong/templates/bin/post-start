@@ -97,15 +97,19 @@ request PUT "/routes/${ADM_ROUTE_UUID_URLENC}" \
 existing_basic_auth_plugins=$(request GET \
     "/plugins?name=basic-auth&service_id=${ADM_SERVICE_UUID_URLENC}")
 
-if grep -qF '"total":0' <<< "${existing_basic_auth_plugins}"; then
+if grep -qF '"data":[]' <<< "${existing_basic_auth_plugins}"; then
     # Enable the 'Basic Authentication' plugin on the Admin API Service
-    request PUT "/plugins" \
+    request POST "/plugins" \
         --data-raw <%= sh_esc(js_esc({
-                "name"    => "basic-auth",
-                "service" => { "id" => adm_service_uuid },
-                "config"  => {
+                "name"     => "basic-auth",
+                "consumer" => nil,
+                "service"  => { "id" => adm_service_uuid },
+                "route"    => nil,
+                "config"   => {
                     "hide_credentials" => true,
                 },
+                "run_on"   => "first",
+                "enabled"  => true,
             })) %> \
         --include
 else
@@ -114,16 +118,17 @@ else
                         <<< "${existing_basic_auth_plugins}")
 
     # Update the 'Basic Authentication' plugin on the Admin API Service
-    request PATCH "/plugins/${plugin_uuid}" \
+    request PUT "/plugins/${plugin_uuid}" \
         --data-raw <%= sh_esc(js_esc({
                 "name"     => "basic-auth",
                 "consumer" => nil,
                 "service"  => { "id" => adm_service_uuid },
                 "route"    => nil,
-                "enabled"  => true,
                 "config"   => {
                     "hide_credentials" => true,
                 },
+                "run_on"   => "first",
+                "enabled"  => true,
             })) %> \
         --include
 fi
