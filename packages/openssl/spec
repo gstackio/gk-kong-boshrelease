@@ -1,0 +1,9 @@
+---
+name: openssl
+
+dependencies: []
+
+files:
+  - openssl/compile.env
+  - openssl/runtime.env
+  - openssl/openssl-*.tar.gz

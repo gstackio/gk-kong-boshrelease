@@ -11,9 +11,13 @@ luarocks/luarocks-3.1.3.tar.gz:
 nodejs/node-v10.16.3.tar.gz:
   size: 45870800
   sha: 21ef023ff05eb3c328d08e9e6196fbba301add28
-openresty/openresty-1.13.6.1.tar.gz:
-  size: 4581699
-  sha: 775b89cfadf3dbfa13864f3ad4dee4f67dac6604
+openresty/openresty-1.13.6.2.tar.gz:
+  size: 4635916
+  object_id: b86547a6-018a-4d2e-5ea5-a3e8150e4673
+  sha: 870055f4698168f1f045de92c467a33361dee5d7
 openresty/openresty-patches-6723044.tar.gz:
   size: 109740
   sha: 629d83fad46baf147205fa6c8a004fb841d73cf9
+openssl/openssl-1.1.1d.tar.gz:
+  size: 8845861
+  sha: sha256:1e3a91bc1f9dfce01af26026f856e064eab4c8ee0a8f457b5ae30b40b8b711f2

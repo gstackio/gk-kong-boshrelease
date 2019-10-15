@@ -20,11 +20,14 @@ function main() {
 
     # NOTE: the environment variables created below are depending on the rocks
     # trees listed in the Luarocks config file above.
-    source /var/vcap/packages/luarocks/runtime.env
+    source "/var/vcap/packages/luarocks/runtime.env"
+
+    # source "/var/vcap/packages/openssl/compile.env" # TODO: not sure we need this
+    OPENSSL_DIR="/var/vcap/packages/openssl"
 
     tar -xf "kong/kong-${KONG_VERSION}.tar.gz"
     pushd "kong-${KONG_VERSION}"
-        luarocks make
+        luarocks make OPENSSL_DIR="${OPENSSL_DIR}" CRYPTO_DIR="${OPENSSL_DIR}"
         mv -v ./bin/* "${BOSH_INSTALL_TARGET}/bin"
     popd
 }

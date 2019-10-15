@@ -19,10 +19,13 @@ exec \
     2> >(prepend_datetime >&4)
 
 
-source /var/vcap/packages/openresty/runtime.env
+source "/var/vcap/packages/openssl/runtime.env"
+
+source "/var/vcap/packages/openresty/runtime.env"
+
 export LUAROCKS_CONFIG=/var/vcap/packages/kong/etc/luarocks/runtime-config.lua
 # NOTE: the environment variables created below are depending on the rocks
 # trees listed in the Luarocks config file above.
-source /var/vcap/packages/luarocks/runtime.env
+source "/var/vcap/packages/luarocks/runtime.env"
 
-exec /var/vcap/packages/kong/bin/kong "$@"
+exec "/var/vcap/packages/kong/bin/kong" "$@"

@@ -23,6 +23,7 @@ packages:
   - kong
   - luarocks
   - openresty
+  - openssl
 
 consumes:
   - name: postgres

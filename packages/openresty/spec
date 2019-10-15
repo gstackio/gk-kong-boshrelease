@@ -1,7 +1,8 @@
 ---
 name: openresty
 
-dependencies: []
+dependencies:
+  - openssl
 
 files:
   - openresty/openresty-*.tar.gz

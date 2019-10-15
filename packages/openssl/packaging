@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+
+set -ueo pipefail
+
+function _config() {
+    readonly OPENSSL_VERSION=1.1.1d
+}
+
+function main() {
+    _config
+
+    _workaround_missing_libraries
+
+    tar -xf "openssl/openssl-${OPENSSL_VERSION}.tar.gz"
+
+    readonly CORES_COUNT=$(grep -c ^processor /proc/cpuinfo)
+    pushd "openssl-${OPENSSL_VERSION}"
+        ./config \
+            --prefix="${BOSH_INSTALL_TARGET}" \
+            --openssldir="/var/vcap/packages/openssl/etc"
+        make -j${CORES_COUNT}
+        make test
+        make install_sw # skip documentation, man pages, and html documentation.
+    popd
+
+    cp -v "openssl/compile.env" "${BOSH_INSTALL_TARGET}/"
+    cp -v "openssl/runtime.env" "${BOSH_INSTALL_TARGET}/"
+}
+
+function _workaround_missing_libraries() {
+
+    # NOTE: We use the '-o APT::Sandbox::User=root' option as a workaround for
+    # this error: "Could not execute 'apt-key' to verify signature".
+    #
+    # See: https://github.com/cloudfoundry/bosh-linux-stemcell-builder/issues/39#issuecomment-418136627
+    apt-get --option APT::Sandbox::User="root" update
+
+    # apt-get --assume-yes install "..."
+}
+
+main "$@"

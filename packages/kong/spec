@@ -4,6 +4,7 @@ name: kong
 dependencies:
   - luarocks
   - openresty
+  - openssl
 
 files:
   - kong/kong-*.tar.gz

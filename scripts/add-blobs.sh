@@ -3,8 +3,11 @@
 set -e
 
 function configure() {
-    OPENRESTY_VERSION=1.13.6.1
-    OPENRESTY_SHA256=d1246e6cfa81098eea56fb88693e980d3e6b8752afae686fab271519b81d696b
+    OPENSSL_VERSION=1.1.1d
+    OPENSSL_SHA256=1e3a91bc1f9dfce01af26026f856e064eab4c8ee0a8f457b5ae30b40b8b711f2
+
+    OPENRESTY_VERSION=1.13.6.2
+    OPENRESTY_SHA256=946e1958273032db43833982e2cec0766154a9b5cb8e67868944113208ff2942
 
     OPENRESTY_PATCHES_VERSION=6723044 # master as of 2019-09-16
     OPENRESTY_PATCHES_SHA256=63ec600d82f268b228c380933f08751983082b888012bf444978296f82acec62
@@ -37,6 +40,9 @@ function main() {
         local blob_file
         set -x
 
+        blob_file="openssl-${OPENSSL_VERSION}.tar.gz"
+        add_blob "openssl" "${blob_file}" "openssl/${blob_file}"
+
         blob_file="openresty-${OPENRESTY_VERSION}.tar.gz"
         add_blob "openresty" "${blob_file}" "openresty/${blob_file}"
 
@@ -68,6 +74,12 @@ function add_blob() {
         "download_${blob_name}"
     fi
     bosh add-blob --dir="${RELEASE_DIR}" "${blob_file}" "${blob_path}"
+}
+
+function download_openssl() {
+    curl -fsSL "https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz" \
+        -o "openssl-${OPENSSL_VERSION}.tar.gz"
+    shasum -a 256 --check <<< "${OPENSSL_SHA256}  openssl-${OPENSSL_VERSION}.tar.gz"
 }
 
 function download_openresty() {

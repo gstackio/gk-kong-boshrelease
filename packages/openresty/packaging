@@ -3,7 +3,7 @@
 set -ueo pipefail
 
 function _config() {
-    readonly OPENRESTY_VERSION=1.13.6.1
+    readonly OPENRESTY_VERSION=1.13.6.2
     readonly OPENRESTY_PATCHES_VERSION=6723044 # master as of 2019-09-16
 }
 
@@ -23,13 +23,46 @@ function main() {
             done
         popd
 
+        # source "/var/vcap/packages/openssl/compile.env" # TODO: not sure we need this
+
+        # Notes on the build configuration:
+        #
+        # - The 5 standard options are recommended from then main Kong build
+        #   documentation at <https://docs.konghq.com/install/source/>
+        #
+        # - The last 3 options are recommended at the very end of the
+        #   documentation for OpenResty Patches for Kong, available at
+        #   <https://github.com/kong/openresty-patches#how-to-apply-patches-manually>
+        #
+        # - '--with-stream_realip_module' is recommended as of OpenResty v1.11.4.x
+        #   '--with-stream_ssl_preread_module' is recommended as of OpenResty v1.11.5.x
+        #   See: <https://github.com/Kong/openresty-build-tools/blob/0a84caf/kong-ngx-build#L459-L465>
+        #
+        # - We choose not to enable IPv6 (--with-ipv6) because as of Oct.
+        #   2019, BOSH-managed instances don't play well with IPv6, and BOSH
+        #   Stemcells even deactivate it.
+        #
+        # - We choose not to activate the "Dual-number mode only" option (with
+        #   --with-luajit-xcflags="-DLUAJIT_NUMMODE=2") because in BOSH
+        #   context, we are supposed to re-compile software for the target
+        #   VMs, and make as few assumptions as possible about the underlying
+        #   processor architecture, in order to support the widest possible
+        #   range. So we let the LuaJIT build system choose the best default
+        #   for the "dual-number mode", based on the deteted architecture.
         ./configure -j${CORES_COUNT} \
             --prefix="${BOSH_INSTALL_TARGET}" \
+            \
+            --with-cc-opt="-I/var/vcap/packages/openssl/include" \
+            --with-ld-opt="-L/var/vcap/packages/openssl/lib" \
+            \
             --with-pcre-jit \
             --with-http_ssl_module \
             --with-http_realip_module \
             --with-http_stub_status_module \
-            --with-http_v2_module
+            --with-http_v2_module \
+            \
+            --with-stream_ssl_preread_module \
+            --with-stream_realip_module
 
         # Other options to consider in the future:
         #
@@ -60,7 +93,7 @@ function _workaround_missing_libraries() {
     #
     # See: https://openresty.org/en/installation.html
     apt-get --assume-yes install "libpcre3-dev" \
-        "libssl-dev" "perl" "make" "build-essential" "curl"
+        "perl" "make" "build-essential" "curl"
 }
 
 main "$@"
