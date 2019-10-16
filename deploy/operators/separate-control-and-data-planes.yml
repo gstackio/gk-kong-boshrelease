@@ -29,10 +29,6 @@
         provides:
           kong: { as: &kong_admin_link kong-admin }
         properties:
-          extra_plugin_packages:
-            - *kong_redirect_plugin_name
-          extra_plugins:
-            - redirect
           proxy:
             http_enabled: false
             tls:
