@@ -1,6 +1,8 @@
 ### Improvements
 
+- Bumped Kong to version 0.15.0, compiled with OpenSSL version 1.1.1d
 - Improved smoke tests, now covering a new Route+Service test case.
+- Fixed the `admin.basic_auth.password` property being mandatory even when the admin API was disabled. Now on instance groups where the admin API is disabled, this property is no more required.
 - Compiled releases are now built on top of the latest stemcell family v456.x
 - Bumped dependencies in default deployment manifest:
   - Postgres release to v39
