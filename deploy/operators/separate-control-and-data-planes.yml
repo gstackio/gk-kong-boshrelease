@@ -63,3 +63,11 @@
   type: replace
   value:
     from: *kong_admin_link
+
+
+
+# Add coverage for the BOSH DNS names related to the new 'kong-control'
+# instance group
+- path: /variables/name=kong_tls/options/alternative_names/-
+  type: replace
+  value: "*.kong-control.((network_name)).((deployment_name)).bosh"
