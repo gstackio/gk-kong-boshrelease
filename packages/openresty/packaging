@@ -9,13 +9,13 @@ function _config() {
 
 function main() {
     _config
+    _setup
 
     _workaround_missing_libraries
 
     tar -xf "openresty/openresty-${OPENRESTY_VERSION}.tar.gz"
     tar -xf "openresty/openresty-patches-${OPENRESTY_PATCHES_VERSION}.tar.gz"
 
-    readonly CORES_COUNT=$(grep -c ^processor /proc/cpuinfo)
     pushd "openresty-${OPENRESTY_VERSION}"
         pushd "bundle"
             for patch_file in "../../openresty-patches-${OPENRESTY_PATCHES_VERSION}"*"/patches/${OPENRESTY_VERSION}/"*".patch"; do
@@ -75,6 +75,11 @@ function main() {
     popd
 
     cp -v "openresty/runtime.env" "${BOSH_INSTALL_TARGET}/"
+}
+
+function _setup() {
+    # Detect # of CPUs so make jobs can be parallelized
+    readonly CORES_COUNT=$(grep -c ^processor /proc/cpuinfo)
 }
 
 function _workaround_missing_libraries() {

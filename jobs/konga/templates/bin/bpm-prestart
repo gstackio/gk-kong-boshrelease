@@ -29,7 +29,7 @@ sudo -u vcap -g vcap ln -sfn "${JOB_DIR}/config/dot-sailsrc.json" "${HOME}/.sail
 
 # Run the data migrations for Konga. This apprears only in the BPM prestart
 # script of the 'bootstrap' node in the BOSH instance group.
-source /var/vcap/packages/nodejs/runtime.env
+source "/var/vcap/packages/nodejs/runtime.env"
 # Note: we must be in the package directory where the 'node_modules/'
 # directory lives, in order to avoid this error:
 # "Could not find module: ejs in path: /etc/sv/monit/node_modules"

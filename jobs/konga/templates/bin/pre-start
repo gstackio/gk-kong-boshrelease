@@ -31,7 +31,7 @@ readonly \
 # in a namespaced BPM sandbox with restricted access to the filesystem.
 #
 # This requires the '{ force: true }' config to be activated in the 'clean'
-# Grunt task.
+# Grunt task. We already apply a patch in Konga 'packaging' script for this.
 rm -rf "${DATA_DIR}/sails.tmp"
 sudo -u vcap -g vcap mkdir -p "${DATA_DIR}/sails.tmp/public"
 ln -sfn "${DATA_DIR}/sails.tmp" "${PKG_DIR}/.tmp"

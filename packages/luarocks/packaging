@@ -21,8 +21,8 @@ function main() {
         # See: https://docs.konghq.com/install/source/
         ./configure \
             --prefix="${BOSH_INSTALL_TARGET}" \
-            --with-lua=/var/vcap/packages/openresty/luajit \
-            --with-lua-include=/var/vcap/packages/openresty/luajit/include/luajit-2.1
+            --with-lua="/var/vcap/packages/openresty/luajit" \
+            --with-lua-include="/var/vcap/packages/openresty/luajit/include/luajit-2.1"
 
         make
         make install

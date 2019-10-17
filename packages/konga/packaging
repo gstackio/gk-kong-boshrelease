@@ -15,7 +15,7 @@ function main() {
         --strip-components=1 \
         -C "${BOSH_INSTALL_TARGET}"
 
-    source /var/vcap/packages/nodejs/runtime.env
+    source "/var/vcap/packages/nodejs/runtime.env"
 
     # Note: we assume these are compile-time dependencies only, because they
     # will be lost when the compilation VM is destroyed.

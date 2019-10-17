@@ -8,12 +8,12 @@ function _config() {
 
 function main() {
     _config
+    _setup
 
     _workaround_missing_libraries
 
     tar -xf "openssl/openssl-${OPENSSL_VERSION}.tar.gz"
 
-    readonly CORES_COUNT=$(grep -c ^processor /proc/cpuinfo)
     pushd "openssl-${OPENSSL_VERSION}"
         ./config \
             --prefix="${BOSH_INSTALL_TARGET}" \
@@ -25,6 +25,11 @@ function main() {
 
     cp -v "openssl/compile.env" "${BOSH_INSTALL_TARGET}/"
     cp -v "openssl/runtime.env" "${BOSH_INSTALL_TARGET}/"
+}
+
+function _setup() {
+    # Detect # of CPUs so make jobs can be parallelized
+    readonly CORES_COUNT=$(grep -c ^processor /proc/cpuinfo)
 }
 
 function _workaround_missing_libraries() {

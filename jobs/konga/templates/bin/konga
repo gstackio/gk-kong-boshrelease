@@ -12,8 +12,8 @@ exec \
     1> >(prepend_datetime >&3) \
     2> >(prepend_datetime >&4)
 
-source /var/vcap/packages/nodejs/runtime.env
-source /var/vcap/packages/konga/runtime.env
+source "/var/vcap/packages/nodejs/runtime.env"
+source "/var/vcap/packages/konga/runtime.env"
 
 cd /var/vcap/packages/konga || exit 115
 
