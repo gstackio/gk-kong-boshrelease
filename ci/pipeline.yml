@@ -292,7 +292,7 @@ jobs:
     - do:
       - in_parallel:
           - { get: git,     trigger: true,  passed: [testflight] }
-          - { get: version, trigger: true, params: {pre: rc} }
+          - { get: version, trigger: false, params: {pre: rc} }
       - task: release-notes
         config:
           platform: linux
