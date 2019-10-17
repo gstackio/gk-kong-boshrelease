@@ -3,7 +3,7 @@
 set -ueo pipefail
 
 function _config() {
-    readonly KONGA_VERSION=0.13.0
+    readonly KONGA_VERSION=0.14.4
 }
 
 function main() {

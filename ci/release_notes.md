@@ -1,6 +1,7 @@
 ### Improvements
 
 - Bumped Kong to version [0.15.0](https://github.com/Kong/kong/releases/tag/0.15.0), compiled with OpenSSL version 1.1.1d
+- Bumped Konga UI to version [0.14.4](https://github.com/pantsel/konga/releases/tag/0.14.4)
 - Improved smoke tests, now covering a new Route+Service test case.
 - Fixed the `admin.basic_auth.password` property being mandatory even when the admin API was disabled. Now on instance groups where the admin API is disabled, this property is no more required.
 - Compiled releases are now built on top of the latest stemcell family v456.x
