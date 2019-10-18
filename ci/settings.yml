@@ -51,6 +51,8 @@ meta:
   bosh:
     stemcell:
       cpi: "warden-boshlite"
+    deployment-no-tls:   (( concat meta.name "-testflight-no-tls" ))
+    deployment-separate: (( concat meta.name "-testflight-separate" ))
 
   test-errands: smoke-tests
 
