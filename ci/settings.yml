@@ -94,7 +94,7 @@ jobs:
             AWS_ACCESS_KEY:       (( grab meta.aws.access_key ))
             AWS_SECRET_KEY:       (( grab meta.aws.secret_key ))
             MANIFEST_PATH:        (( grab meta.manifest.path ))
-            MANIFEST_VARS:        (( grab meta.manifest.vars ))
+            MANIFEST_VARS:        (( grab meta.manifest.vars-no-tls ))
             MANIFEST_OP_PATHS:    (( grab meta.manifest.operator_file_paths-no-tls))
 
       - name: testflight-separate
@@ -122,5 +122,5 @@ jobs:
             AWS_ACCESS_KEY:       (( grab meta.aws.access_key ))
             AWS_SECRET_KEY:       (( grab meta.aws.secret_key ))
             MANIFEST_PATH:        (( grab meta.manifest.path ))
-            MANIFEST_VARS:        (( grab meta.manifest.vars ))
+            MANIFEST_VARS:        (( grab meta.manifest.vars-separate ))
             MANIFEST_OP_PATHS:    (( grab meta.manifest.operator_file_paths-separate))
