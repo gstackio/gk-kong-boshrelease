@@ -10,16 +10,30 @@ meta:
 
   manifest:
     directory: deploy
+    vars: |
+      ---
+      deployment_name: gk-kong-testflight
+      network_name: default
+    vars-pr: |
+      ---
+      deployment_name: gk-kong-testflight-pr
+      network_name: default
+
+    operator_file_paths-no-tls: "deploy/operators/disable-tls.yml"
+    vars-no-tls: |
+      ---
+      deployment_name: gk-kong-testflight-no-tls
+      network_name: default
+
+    operator_file_paths-separate: "deploy/operators/separate-control-and-data-planes.yml"
+    vars-separate: |
+      ---
+      deployment_name: gk-kong-testflight-separate
+      network_name: default
 
   git:
     email:  ((git-commit-email))
     name:   ((git-commit-name))
-
-  bosh-lite:
-    target:   ((bosh-lite-environment))
-    cacert:   ((bosh-lite-ca-cert))
-    username: ((bosh-lite-client))
-    password: ((bosh-lite-client-secret))
 
   aws:
     bucket:      (( grab meta.pipeline ))
@@ -34,6 +48,12 @@ meta:
     private_key:  ((github-private-key))
     access_token: ((github-access-token))
 
+  bosh:
+    stemcell:
+      cpi: "warden-boshlite"
+
+  test-errands: smoke-tests
+
   slack:
     webhook:       ((slack-webhook))
     username:      ((slack-username))
@@ -41,3 +61,66 @@ meta:
     channel:       (( concat "#" meta.name "-boshrelease" ))
     blob_success:  '(( concat ": New version of  was detected, and updated in master. <" meta.url "/teams//pipelines/| Cut a new release?>" ))'
     blob_failure:  '(( concat ": :airplane_arriving: <" meta.url "/teams//pipelines//jobs//builds/| Failed to update the blob for >" ))'
+
+jobs:
+  - name: testflight
+    plan:
+    - name: main
+      do:
+      - (( append ))
+
+      - name: testflight-no-tls
+        task: testflight
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source:
+              repository: (( grab meta.image.name ))
+              tag:        (( grab meta.image.tag ))
+          inputs:
+            - { name: git }
+          run:
+            path: ./git/ci/scripts/testflight
+            args: []
+          params:
+            REPO_ROOT:            git
+            BOSH_ENVIRONMENT:     (( grab meta.bosh.target ))
+            BOSH_CA_CERT:         (( grab meta.bosh.cacert ))
+            BOSH_CLIENT:          (( grab meta.bosh.username ))
+            BOSH_CLIENT_SECRET:   (( grab meta.bosh.password ))
+            BOSH_DEPLOYMENT:      (( grab meta.bosh.deployment-no-tls ))
+            TEST_ERRANDS:         (( grab meta.test-errands || meta.test-errand || ~ ))
+            AWS_ACCESS_KEY:       (( grab meta.aws.access_key ))
+            AWS_SECRET_KEY:       (( grab meta.aws.secret_key ))
+            MANIFEST_PATH:        (( grab meta.manifest.path ))
+            MANIFEST_VARS:        (( grab meta.manifest.vars ))
+            MANIFEST_OP_PATHS:    (( grab meta.manifest.operator_file_paths-no-tls))
+
+      - name: testflight-separate
+        task: testflight
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source:
+              repository: (( grab meta.image.name ))
+              tag:        (( grab meta.image.tag ))
+          inputs:
+            - { name: git }
+          run:
+            path: ./git/ci/scripts/testflight
+            args: []
+          params:
+            REPO_ROOT:            git
+            BOSH_ENVIRONMENT:     (( grab meta.bosh.target ))
+            BOSH_CA_CERT:         (( grab meta.bosh.cacert ))
+            BOSH_CLIENT:          (( grab meta.bosh.username ))
+            BOSH_CLIENT_SECRET:   (( grab meta.bosh.password ))
+            BOSH_DEPLOYMENT:      (( grab meta.bosh.deployment-separate ))
+            TEST_ERRANDS:         (( grab meta.test-errands || meta.test-errand || ~ ))
+            AWS_ACCESS_KEY:       (( grab meta.aws.access_key ))
+            AWS_SECRET_KEY:       (( grab meta.aws.secret_key ))
+            MANIFEST_PATH:        (( grab meta.manifest.path ))
+            MANIFEST_VARS:        (( grab meta.manifest.vars ))
+            MANIFEST_OP_PATHS:    (( grab meta.manifest.operator_file_paths-separate))

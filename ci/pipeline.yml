@@ -18,26 +18,10 @@ meta:
   url:      (( param "Please specify the full url of the target Concourse CI" ))
   pipeline: (( concat meta.name "-boshrelease" ))
   manifest:
-    path:   (( concat meta.manifest.directory "/kong.yml" ))
-    vars: |
-      ---
-      deployment_name: gk-kong-testflight
-      network_name: default
-    vars-no-tls: |
-      ---
-      deployment_name: gk-kong-testflight-no-tls
-      network_name: default
-    vars-separate: |
-      ---
-      deployment_name: gk-kong-testflight-separate
-      network_name: default
-    vars-pr: |
-      ---
-      deployment_name: gk-kong-testflight-pr
-      network_name: default
+    path:   (( concat meta.manifest.directory "/" meta.name ".yml" ))
+    vars:   "--- {}"
+    vars-pr: (( grab meta.manifest.vars ))
     operator_file_paths: "" # comma separated list relative to repo root
-    operator_file_paths-no-tls: "deploy/operators/disable-tls.yml"
-    operator_file_paths-separate: "deploy/operators/separate-control-and-data-planes.yml"
 
   git:
     email:  (( param "Please provide the git email for automated commits" ))
@@ -61,20 +45,19 @@ meta:
     private_key:  (( param "Please generate an SSH Deployment Key for this repo and specify it here" ))
     access_token: (( param "Please generate a Personal Access Token to be used for creating github releases (do you have a ci-bot?)" ))
 
-  bosh-lite:
-    target:     (( param "Please specify the BOSH target URI for the bosh-lite to run test deployments against" ))
-    cacert:     (( param "Please specify the BOSH Director Root CA cert" ))
-    username:   admin
-    password:   (( param "Please specify the BOSH Director admin password" ))
-    deployment:          (( concat meta.name "-testflight" ))
+  bosh:
+    stemcell:
+      major: 456
+      cpi: aws-xen-hvm # overridden
+      os: ubuntu-xenial
+    target:        ((bosh-lite-environment))
+    cacert:        ((bosh-lite-ca-cert))
+    username:      ((bosh-lite-client))
+    password:      ((bosh-lite-client-secret))
+    deployment:    (( concat meta.name "-testflight" ))
+    deployment-pr: (( concat meta.name "-testflight-pr" ))
     deployment-no-tls:   (( concat meta.name "-testflight-no-tls" ))
     deployment-separate: (( concat meta.name "-testflight-separate" ))
-    deployment-pr:       (( concat meta.name "-testflight-pr" ))
-
-  test-errands: smoke-tests
-
-  compiled-release:
-    stemcell_version_family: "456"
 
   slack:
     webhook:       (( param "Please specify your Slack Incoming Webhook Integration URL" ))
@@ -91,15 +74,18 @@ groups:
     jobs:
       - testflight
       - testflight-pr
+      - pre
       - rc
       - shipit
-      - (( concat "compile-release-" meta.compiled-release.stemcell_version_family ))
-      - use-compiled-releases
   - name: versioning
     jobs:
       - major
       - minor
       - patch
+  - name: compiled-releases
+    jobs:
+      - compile-release
+      - use-compiled-releases
 
 jobs:
   - name: testflight
@@ -108,92 +94,34 @@ jobs:
     plan:
     - name: main
       do:
-      - name: get
-        in_parallel:
-        - { get: git, trigger: true }
-      - name: testflights
-        in_parallel:
-        - name: testflight
-          task: testflight
-          config:
-            platform: linux
-            image_resource:
-              type: docker-image
-              source:
-                repository: (( grab meta.image.name ))
-                tag:        (( grab meta.image.tag ))
-            inputs:
-              - { name: git }
-            run:
-              path: ./git/ci/scripts/testflight
-              args: []
-            params:
-              REPO_ROOT:            git
-              BOSH_ENVIRONMENT:     (( grab meta.bosh-lite.target ))
-              BOSH_CA_CERT:         (( grab meta.bosh-lite.cacert ))
-              BOSH_CLIENT:          (( grab meta.bosh-lite.username ))
-              BOSH_CLIENT_SECRET:   (( grab meta.bosh-lite.password ))
-              BOSH_DEPLOYMENT:      (( grab meta.bosh-lite.deployment ))
-              TEST_ERRANDS:         (( grab meta.test-errands || meta.test-errand || ~ ))
-              AWS_ACCESS_KEY:       (( grab meta.aws.access_key ))
-              AWS_SECRET_KEY:       (( grab meta.aws.secret_key ))
-              MANIFEST_PATH:        (( grab meta.manifest.path ))
-              MANIFEST_VARS:        (( grab meta.manifest.vars ))
-              MANIFEST_OP_PATHS:    (( grab meta.manifest.operator_file_paths ))
-        - name: testflight-no-tls
-          task: testflight
-          config:
-            platform: linux
-            image_resource:
-              type: docker-image
-              source:
-                repository: (( grab meta.image.name ))
-                tag:        (( grab meta.image.tag ))
-            inputs:
-              - { name: git }
-            run:
-              path: ./git/ci/scripts/testflight
-              args: []
-            params:
-              REPO_ROOT:            git
-              BOSH_ENVIRONMENT:     (( grab meta.bosh-lite.target ))
-              BOSH_CA_CERT:         (( grab meta.bosh-lite.cacert ))
-              BOSH_CLIENT:          (( grab meta.bosh-lite.username ))
-              BOSH_CLIENT_SECRET:   (( grab meta.bosh-lite.password ))
-              BOSH_DEPLOYMENT:      (( grab meta.bosh-lite.deployment-no-tls ))
-              TEST_ERRANDS:         (( grab meta.test-errands || meta.test-errand || ~ ))
-              AWS_ACCESS_KEY:       (( grab meta.aws.access_key ))
-              AWS_SECRET_KEY:       (( grab meta.aws.secret_key ))
-              MANIFEST_PATH:        (( grab meta.manifest.path ))
-              MANIFEST_VARS:        (( grab meta.manifest.vars-no-tls ))
-              MANIFEST_OP_PATHS:    (( grab meta.manifest.operator_file_paths-no-tls ))
-        - name: testflight-separate
-          task: testflight
-          config:
-            platform: linux
-            image_resource:
-              type: docker-image
-              source:
-                repository: (( grab meta.image.name ))
-                tag:        (( grab meta.image.tag ))
-            inputs:
-              - { name: git }
-            run:
-              path: ./git/ci/scripts/testflight
-              args: []
-            params:
-              REPO_ROOT:            git
-              BOSH_ENVIRONMENT:     (( grab meta.bosh-lite.target ))
-              BOSH_CA_CERT:         (( grab meta.bosh-lite.cacert ))
-              BOSH_CLIENT:          (( grab meta.bosh-lite.username ))
-              BOSH_CLIENT_SECRET:   (( grab meta.bosh-lite.password ))
-              BOSH_DEPLOYMENT:      (( grab meta.bosh-lite.deployment-separate ))
-              TEST_ERRANDS:         (( grab meta.test-errands || meta.test-errand || ~ ))
-              AWS_ACCESS_KEY:       (( grab meta.aws.access_key ))
-              AWS_SECRET_KEY:       (( grab meta.aws.secret_key ))
-              MANIFEST_PATH:        (( grab meta.manifest.path ))
-              MANIFEST_VARS:        (( grab meta.manifest.vars-separate ))
-              MANIFEST_OP_PATHS:    (( grab meta.manifest.operator_file_paths-separate ))
+      - { get: git, trigger: true }
+      - name: testflight
+        task: testflight
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source:
+              repository: (( grab meta.image.name ))
+              tag:        (( grab meta.image.tag ))
+          inputs:
+            - { name: git }
+          run:
+            path: ./git/ci/scripts/testflight
+            args: []
+          params:
+            REPO_ROOT:            git
+            BOSH_ENVIRONMENT:     (( grab meta.bosh.target ))
+            BOSH_CA_CERT:         (( grab meta.bosh.cacert ))
+            BOSH_CLIENT:          (( grab meta.bosh.username ))
+            BOSH_CLIENT_SECRET:   (( grab meta.bosh.password ))
+            BOSH_DEPLOYMENT:      (( grab meta.bosh.deployment ))
+            TEST_ERRANDS:         (( grab meta.test-errands || meta.test-errand || ~ ))
+            AWS_ACCESS_KEY:       (( grab meta.aws.access_key ))
+            AWS_SECRET_KEY:       (( grab meta.aws.secret_key ))
+            MANIFEST_PATH:        (( grab meta.manifest.path ))
+            MANIFEST_VARS:        (( grab meta.manifest.vars ))
+            MANIFEST_OP_PATHS:    (( grab meta.manifest.operator_file_paths ))
       on_failure:
         put: notify
         params:
@@ -208,53 +136,49 @@ jobs:
     plan:
     - name: main
       do:
-      - name: get
-        in_parallel:
-          - { get: git-pull-requests, trigger: true, version: every }
+      - { get: git-pull-requests, trigger: true, version: every }
       - name: pending-status
         put: git-pull-requests
         params:
           path: git-pull-requests
           status: pending
-      - name: testflights
-        in_parallel:
-        - name: testflight
-          task: testflight
-          config:
-            platform: linux
-            image_resource:
-              type: docker-image
-              source:
-                repository: (( grab meta.image.name ))
-                tag:        (( grab meta.image.tag ))
-            inputs:
-              - { name: git-pull-requests }
-            run:
-              path: ./git-pull-requests/ci/scripts/testflight
-              args: []
-            params:
-              REPO_ROOT:            git-pull-requests
-              BOSH_ENVIRONMENT:     (( grab meta.bosh-lite.target ))
-              BOSH_CA_CERT:         (( grab meta.bosh-lite.cacert ))
-              BOSH_CLIENT:          (( grab meta.bosh-lite.username ))
-              BOSH_CLIENT_SECRET:   (( grab meta.bosh-lite.password ))
-              BOSH_DEPLOYMENT:      (( grab meta.bosh-lite.deployment-pr ))
-              TEST_ERRANDS:         (( grab meta.test-errands || meta.test-errand || ~ ))
-              AWS_ACCESS_KEY:       (( grab meta.aws.access_key ))
-              AWS_SECRET_KEY:       (( grab meta.aws.secret_key ))
-              MANIFEST_PATH:        (( grab meta.manifest.path ))
-              MANIFEST_VARS:        (( grab meta.manifest.vars-pr ))
-              MANIFEST_OP_PATHS:    (( grab meta.manifest.operator_file_paths ))
-          on_success:
-            put: git-pull-requests
-            params:
-              path: git-pull-requests
-              status: success
-          on_failure:
-            put: git-pull-requests
-            params:
-              path: git-pull-requests
-              status: failure
+      - name: testflight
+        task: testflight
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source:
+              repository: (( grab meta.image.name ))
+              tag:        (( grab meta.image.tag ))
+          inputs:
+            - { name: git-pull-requests }
+          run:
+            path: ./git-pull-requests/ci/scripts/testflight
+            args: []
+          params:
+            REPO_ROOT:            git-pull-requests
+            BOSH_ENVIRONMENT:     (( grab meta.bosh.target ))
+            BOSH_CA_CERT:         (( grab meta.bosh.cacert ))
+            BOSH_CLIENT:          (( grab meta.bosh.username ))
+            BOSH_CLIENT_SECRET:   (( grab meta.bosh.password ))
+            BOSH_DEPLOYMENT:      (( grab meta.bosh.deployment-pr ))
+            TEST_ERRANDS:         (( grab meta.test-errands || meta.test-errand || ~ ))
+            AWS_ACCESS_KEY:       (( grab meta.aws.access_key ))
+            AWS_SECRET_KEY:       (( grab meta.aws.secret_key ))
+            MANIFEST_PATH:        (( grab meta.manifest.path ))
+            MANIFEST_VARS:        (( grab meta.manifest.vars-pr ))
+            MANIFEST_OP_PATHS:    (( grab meta.manifest.operator_file_paths ))
+        on_success:
+          put: git-pull-requests
+          params:
+            path: git-pull-requests
+            status: success
+        on_failure:
+          put: git-pull-requests
+          params:
+            path: git-pull-requests
+            status: failure
       - name: pr-success-message
         task: pr-success-message
         config:
@@ -285,14 +209,63 @@ jobs:
           icon_url: (( grab meta.slack.icon ))
           text_file: message/body
 
+  - name: pre
+    public: true
+    serial: true
+    plan:
+    - do:
+      - get: git
+        passed:
+        - testflight
+        trigger: true
+      - get: version
+        trigger: true
+      - task: release-notes
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source:
+              repository: starkandwayne/concourse
+              tag: latest
+          run:
+            path: sh
+            args:
+            - -ce
+            - |
+              cd git
+              if [ -f ci/release_notes.md ]; then
+                echo "######   RELEASE NOTES   ###############"
+                echo
+                cat ci/release_notes.md
+                echo
+                echo "########################################"
+                echo
+              else
+                echo "NO RELEASE NOTES HAVE BEEN WRITTEN"
+                echo "You *might* want to do that before"
+                echo "hitting (+) on that shipit job..."
+                echo
+              fi
+          inputs:
+          - name: git
+      on_failure:
+        put: notify
+        params:
+          channel:  (( grab meta.slack.channel ))
+          username: (( grab meta.slack.username ))
+          icon_url: (( grab meta.slack.icon ))
+          link: https://pipes.starkandwayne.com/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+          message: release candidate job 'pre' failed (which is unusual).
+          ok: false
+
   - name: rc
     public: true
     serial: true
     plan:
     - do:
-      - in_parallel:
-          - { get: git,     trigger: true,  passed: [testflight] }
-          - { get: version, trigger: false, params: {pre: rc} }
+      - { get: git,     trigger: true,  passed: [pre] }
+      - { get: version, trigger: false, params: {pre: rc} }
       - task: release-notes
         config:
           platform: linux
@@ -379,10 +352,8 @@ jobs:
     serial: true
     plan:
     - do:
-      - name: inputs
-        in_parallel:
-          - { get: version, passed: [rc], params: {bump: final} }
-          - { get: git,     passed: [rc] }
+      - { get: version, passed: [rc], params: {bump: final} }
+      - { get: git,     passed: [rc] }
       - name: release
         task: release
         config:
@@ -437,13 +408,12 @@ jobs:
         params:
           bump: patch
       - name: notify
-        in_parallel:
-        - put: notify
-          params:
-            channel:  (( grab meta.slack.channel ))
-            username: (( grab meta.slack.username ))
-            icon_url: (( grab meta.slack.icon ))
-            text_file: notifications/message
+        put: notify
+        params:
+          channel:  (( grab meta.slack.channel ))
+          username: (( grab meta.slack.username ))
+          icon_url: (( grab meta.slack.icon ))
+          text_file: notifications/message
       on_failure:
         put: notify
         params:
@@ -452,14 +422,14 @@ jobs:
           icon_url: (( grab meta.slack.icon ))
           text:    '(( concat meta.slack.fail_url " " meta.pipeline ": shipit job failed" ))'
 
-  - name: (( concat "compile-release-" meta.compiled-release.stemcell_version_family ))
+  - name: compile-release
+    old_name: compile-release-456
     plan:
-      - in_parallel:
-        - get: git
-        - get: github
-          trigger: true
-        - get: (( concat "ubuntu-xenial-stemcell-" meta.compiled-release.stemcell_version_family ))
-          params: {tarball: false}
+      - get: git
+      - get: github
+        trigger: true
+      - get: (( concat meta.bosh.stemcell.os "-stemcell-" meta.bosh.stemcell.major ))
+        params: {tarball: false}
       - task: export-release
         config:
           platform: linux
@@ -470,7 +440,7 @@ jobs:
               tag:        (( grab meta.image.tag ))
           inputs:
             - name: git
-            - name: (( concat "ubuntu-xenial-stemcell-" meta.compiled-release.stemcell_version_family ))
+            - name: (( concat meta.bosh.stemcell.os "-stemcell-" meta.bosh.stemcell.major ))
               path: stemcell
             - name: github
               path: release
@@ -479,26 +449,28 @@ jobs:
           run:
             path: git/ci/scripts/export-release
           params:
-            BOSH_ENVIRONMENT:     (( grab meta.bosh-lite.target ))
-            BOSH_CA_CERT:         (( grab meta.bosh-lite.cacert ))
-            BOSH_CLIENT:          (( grab meta.bosh-lite.username ))
-            BOSH_CLIENT_SECRET:   (( grab meta.bosh-lite.password ))
+            BOSH_ENVIRONMENT:     (( grab meta.bosh.target ))
+            BOSH_CA_CERT:         (( grab meta.bosh.cacert ))
+            BOSH_CLIENT:          (( grab meta.bosh.username ))
+            BOSH_CLIENT_SECRET:   (( grab meta.bosh.password ))
       - put: compiled-release
         params:
           file: (( concat "compiled-release/compiled-releases/" meta.name "/*.tgz" ))
 
   - name: use-compiled-releases
     plan:
-      - in_parallel:
-        - get: git
-        - get: github
-          passed: [ (( concat "compile-release-" meta.compiled-release.stemcell_version_family )) ]
-          trigger: true
-        - get: (( concat "ubuntu-xenial-stemcell-" meta.compiled-release.stemcell_version_family ))
-          passed: [ (( concat "compile-release-" meta.compiled-release.stemcell_version_family )) ]
-          params: {tarball: false}
-        - get: compiled-release
-          passed: [ (( concat "compile-release-" meta.compiled-release.stemcell_version_family )) ]
+      - name: resources
+        in_parallel:
+          steps:
+            - get: git
+            - get: github
+              passed: [compile-release]
+              trigger: true
+            - get: (( concat meta.bosh.stemcell.os "-stemcell-" meta.bosh.stemcell.major ))
+              passed: [compile-release]
+              params: {tarball: false}
+            - get: compiled-release
+              passed: [compile-release]
       - task: use-compiled-releases
         config:
           platform: linux
@@ -509,7 +481,7 @@ jobs:
               tag:        (( grab meta.image.tag ))
           inputs:
             - name: git
-            - name: (( concat "ubuntu-xenial-stemcell-" meta.compiled-release.stemcell_version_family ))
+            - name: (( concat meta.bosh.stemcell.os "-stemcell-" meta.bosh.stemcell.major ))
               path: stemcell
             - name: github
               path: release
@@ -591,11 +563,11 @@ resources:
       access_key_id:     (( grab meta.aws.access_key ))
       secret_access_key: (( grab meta.aws.secret_key ))
 
-  - name: (( concat "ubuntu-xenial-stemcell-" meta.compiled-release.stemcell_version_family ))
+  - name: (( concat meta.bosh.stemcell.os "-stemcell-" meta.bosh.stemcell.major ))
     type: bosh-io-stemcell
     source:
-      name: bosh-warden-boshlite-ubuntu-xenial-go_agent
-      version_family: (( concat meta.compiled-release.stemcell_version_family ".latest" ))
+      name: (( concat "bosh-" meta.bosh.stemcell.cpi "-" meta.bosh.stemcell.os "-go_agent" ))
+      version_family: (( concat meta.bosh.stemcell.major ".latest" ))
 
   - name: compiled-release
     type: s3

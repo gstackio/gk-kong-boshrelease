@@ -2,6 +2,12 @@
 
 - Removed stale Konga blob, leading to 2MB smaller release `.tgz` file
 
+
+### Breaking Changes
+
+- The `kong.yml` deployment manifest is renamed `gk-kong.yml` to match the BOSH Release name
+
+
 ### Caveats
 
 - The admin API is exposed on _all_ hosts under the path specified by `admin.service.route_path` (defaulting to `/admin-api`). It can be surprising on some enterprise API host, the `/admin-api` path is actually the Kong admin API.
