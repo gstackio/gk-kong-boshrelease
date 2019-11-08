@@ -1,0 +1,261 @@
+---
+
+resource_types:
+  - name: keyval
+    type: docker-image
+    source:
+      repository: swce/keyval-resource
+ 
+resources:
+  - name: kinja-image
+    type: docker-image
+    source:
+      repository: kinja/pipeline-image
+
+  - name: kong-gh-release
+    type: github-release
+    source:
+      owner: kong
+      repository: kong
+      pre_release: false
+      tag_filter: (1\.0\.\d+)
+      access_token: ((github_access_token))
+
+  - name: kong-boshrelease-master
+    type: git
+    source:
+      uri: ((kong_release_git_uri))
+      branch: master
+      private_key: ((github_private_key))
+
+  - name: bump-info
+    type: keyval
+
+jobs:
+  - name: detect-kong
+    plan:
+      - in_parallel:
+        - get: kong-gh-release
+          trigger: true
+          params:
+            globs: []
+            include_source_tarball: true
+        - get: kong-boshrelease-master
+        - get: kinja-image
+
+      - task: add-blob
+        input_mapping:
+          kong-boshrelease: kong-boshrelease-master
+        image: kinja-image
+        config:
+          platform: linux
+          inputs:
+            - name: kong-gh-release
+            - name: kong-boshrelease
+          outputs:
+            - name: kong-boshrelease-bumped
+            - name: bump-info
+          run:
+            path: /bin/bash
+            args:
+              - -xc
+              - |
+                set -ueo pipefail
+
+                find kong-gh-release -ls
+
+                echo tag:        $(< kong-gh-release/tag)
+                echo version:    $(< kong-gh-release/version)
+                echo commit_sha: $(< kong-gh-release/commit_sha)
+
+                latest_kong_version=$(< kong-gh-release/version)
+                ls -l "kong-gh-release"
+
+                git clone "kong-boshrelease" "kong-boshrelease-bumped"
+                branch_name="bump-kong-${latest_kong_version}"
+
+                pushd "kong-boshrelease-bumped" > /dev/null
+                    git checkout "master"
+                    git pull
+
+                    git checkout -b "${branch_name}"
+
+                    bosh blobs
+
+                    kong_old_blob_path=$(bosh blobs | awk '/kong\/kong-[0-9.]+\.tar\.gz/{print $1}')
+
+                    bosh remove-blob "${kong_old_blob_path}"
+                    bosh add-blob "../kong-gh-release/source.tar.gz" "kong/kong-${latest_kong_version}.tar.gz"
+
+                    bosh blobs
+
+                    echo "Updating 'packages/kong/packaging' file."
+                    sed -i -re "/KONG_VERSION=/s/=[0-9.]+\$/=${latest_kong_version}/" "packages/kong/packaging"
+                    grep -F -nC 2 "KONG_VERSION=" "packages/kong/packaging"
+
+                    echo "Updating 'scripts/add-blobs.sh' utility."
+                    kong_sha256=$(bosh blobs --column path --column digest | awk '/kong\/kong-[0-9.]+\.tar\.gz/{sub("^sha256:", "", $2); print $2}')
+                    sed -i -re "/KONG_VERSION=/s/=[0-9.]+\$/=${latest_kong_version}/" "scripts/add-blobs.sh"
+                    sed -i -re "/KONG_SHA256=/s/=[0-9a-f]+\$/=${kong_sha256}/" "scripts/add-blobs.sh"
+                    grep -E -nC 2 "KONG_(VERSION|SHA256)=" "scripts/add-blobs.sh"
+
+                    git config --global "color.ui" "always"
+                    git status
+                    git diff | cat
+
+                    git config --global "user.name" "((git_user_name))"
+                    git config --global "user.email" "((git_user_email))"
+
+                    git add .
+                    git commit -m "Bump Kong binary to version ${latest_kong_version}"
+                popd > /dev/null
+
+
+                # Write properties to the keyval output resource
+
+                mkdir -p bump-info
+                echo "latest_kong_version=${latest_kong_version}" >> bump-info/keyval.properties
+                echo "branch_name=${branch_name}"                 >> bump-info/keyval.properties
+
+      - put: bump-info
+        params:
+          file: bump-info/keyval.properties
+
+      - task: upload-blobs
+        params:
+          S3_ACCESS_KEY_ID: ((s3_access_key_id))
+          S3_SECRET_ACCESS_KEY: ((s3_secret_access_key))
+        image: kinja-image
+        config:
+          platform: linux
+          inputs:
+            - name: kong-boshrelease-bumped
+          outputs:
+            - name: kong-boshrelease-blobs-uploaded
+          params:
+            S3_ACCESS_KEY_ID:
+            S3_SECRET_ACCESS_KEY:
+          run:
+            path: /bin/bash
+            args:
+              - -exc
+              - |
+                git clone "kong-boshrelease-bumped" "kong-boshrelease-blobs-uploaded"
+                cp -Rp "kong-boshrelease-bumped/blobs" "kong-boshrelease-blobs-uploaded"
+
+                set +x
+                cat <<EOF > "kong-boshrelease-blobs-uploaded/config/private.yml"
+                ---
+                blobstore:
+                  options:
+                    access_key_id: ${S3_ACCESS_KEY_ID}
+                    secret_access_key: ${S3_SECRET_ACCESS_KEY}
+                EOF
+                set -x
+
+                pushd "kong-boshrelease-blobs-uploaded" > /dev/null
+                    bosh upload-blobs
+
+                    git config --global "user.name" "((git_user_name))"
+                    git config --global "user.email" "((git_user_email))"
+
+                    git add "config/blobs.yml"
+                    git commit -m "Uploaded blob for new Kong source code"
+                popd > /dev/null
+
+      - task: git-push
+        input_mapping:
+          repo: kong-boshrelease-blobs-uploaded
+        params:
+          GIT_URI: ((kong_release_git_uri))
+          GITHUB_PRIVATE_KEY: ((github_private_key))
+        image: kinja-image
+        config:
+          platform: linux
+          inputs:
+            - name: bump-info
+            - name: repo
+          params:
+            GIT_URI:
+            GITHUB_PRIVATE_KEY:
+          run:
+            path: /bin/bash
+            args:
+              - -exc
+              - |
+                mkdir -p "${HOME}/.ssh"
+                chmod 700 "${HOME}/.ssh"
+
+                touch "${HOME}/.ssh/id_rsa"
+                chmod 600 "${HOME}/.ssh/id_rsa"
+                cat <<< "${GITHUB_PRIVATE_KEY}" > "${HOME}/.ssh/id_rsa"
+
+                grep -vE "^(UPDATED|UUID)=" "bump-info/keyval.properties" \
+                    | sed -r -e 's/"/\"/g; s/=(.*)$/="\1"/' \
+                    > keyval.inc.bash
+                source "keyval.inc.bash"
+
+                pushd "repo" > /dev/null
+                    git remote set-url origin "${GIT_URI}"
+                    ssh-keyscan -t rsa "github.com" 2> /dev/null >> "${HOME}/.ssh/known_hosts"
+                    git push --set-upstream origin "${branch_name}"
+                popd > /dev/null
+
+      - task: submit-pr
+        params:
+          GH_ACCESS_TOKEN: ((github_access_token))
+          GH_OWNER: gstackio
+          GH_REPO: gk-kong-boshrelease
+        image: kinja-image
+        config:
+          platform: linux
+          inputs:
+            - name: bump-info
+          params:
+            GH_ACCESS_TOKEN:
+            GH_OWNER:
+            GH_REPO:
+          run:
+            path: /bin/bash
+            args:
+              - -exc
+              - |
+                grep -vE "^(UPDATED|UUID)=" "bump-info/keyval.properties" \
+                    | sed -r -e 's/"/\"/g; s/=(.*)$/="\1"/' \
+                    > keyval.inc.bash
+                source "keyval.inc.bash"
+
+                pr_desc="Hi there!"
+                pr_desc+="\\n"
+                pr_desc+="\\nI noticed that the new Kong v${latest_kong_version} is out,"
+                pr_desc+=" so I suggest we update this BOSH Release with the latest binary available."
+                pr_desc+="\\n"
+                pr_desc+="\\nHere in this PR, I've pulled that new binary in."
+                pr_desc+=" I uploaded the blob to the release blobstore, and here is the result."
+                pr_desc+="\\n"
+                pr_desc+="\\nLet's give it a shot, shall we?"
+                pr_desc+="\\n"
+                pr_desc+="\\nBest"
+
+                # See also: https://developer.github.com/v3/pulls/#create-a-pull-request
+                pr_data=$(jq -n \
+                    --arg title "Bump Kong to version ${latest_kong_version}" \
+                    --arg body "$(echo -e "${pr_desc}")" \
+                    --arg head "${branch_name}" \
+                    '{
+                        "base": "master",
+                        "title": $title,
+                        "body": $body,
+                        "head": $head,
+                        "maintainer_can_modify": true
+                    }')
+
+                echo "Creating pull request: POST /repos/${GH_OWNER}/${GH_REPO}/pulls"
+                # See also: https://developer.github.com/v3/
+                curl --silent --fail \
+                    --header "Accept: application/vnd.github.v3+json" \
+                    --header "Authorization: token ${GH_ACCESS_TOKEN}" \
+                    --request POST \
+                    --url "https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/pulls" \
+                    --data-raw "${pr_data}"
+                exit 0
