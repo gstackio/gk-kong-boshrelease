@@ -1,6 +1,10 @@
 ### Improvements
 
-- Removed stale Konga blob, leading to 2MB smaller release `.tgz` file
+- Removed stale Konga blob, leading to 2MB smaller release `.tgz` file.
+
+- Bumped BPM to v1.1.5 in the standard deployment manifest.
+
+- Bumped stemcell family to v621.x for compiled releases.
 
 
 ### Breaking Changes

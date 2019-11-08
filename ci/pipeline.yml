@@ -47,7 +47,7 @@ meta:
 
   bosh:
     stemcell:
-      major: 456
+      major: 621
       cpi: aws-xen-hvm # overridden
       os: ubuntu-xenial
     target:        ((bosh-lite-environment))
