@@ -1,4 +1,4 @@
-# Gstack BOSH Release for Kong CE
+# Kong BOSH Release
 
 This BOSH Release is the fastest way to get up and running with a cluster of
 [Kong CE][kong_ce] API Gateway when you're using [BOSH][bosh_io].
