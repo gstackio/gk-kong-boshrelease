@@ -26,7 +26,9 @@ function main() {
     OPENSSL_DIR="/var/vcap/packages/openssl"
 
     tar -xf "kong/kong-${KONG_VERSION}.tar.gz"
-    pushd "kong-${KONG_VERSION}"
+    local kong_src_dir
+    kong_src_dir=$(tar -tvf "kong/kong-${KONG_VERSION}.tar.gz" | head -n 1 | awk '{print $9}')
+    pushd "${kong_src_dir}"
         luarocks make OPENSSL_DIR="${OPENSSL_DIR}" CRYPTO_DIR="${OPENSSL_DIR}"
         mv -v ./bin/* "${BOSH_INSTALL_TARGET}/bin"
     popd
