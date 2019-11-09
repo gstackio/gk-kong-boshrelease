@@ -27,7 +27,7 @@ function main() {
 
     tar -xf "kong/kong-${KONG_VERSION}.tar.gz"
     local kong_src_dir
-    kong_src_dir=$(tar -tvf "kong/kong-${KONG_VERSION}.tar.gz" | head -n 1 | awk '{print $9}')
+    kong_src_dir=$(tar -tvf "kong/kong-${KONG_VERSION}.tar.gz" | head -n 1 | awk '{print $6}')
     pushd "${kong_src_dir}"
         luarocks make OPENSSL_DIR="${OPENSSL_DIR}" CRYPTO_DIR="${OPENSSL_DIR}"
         mv -v ./bin/* "${BOSH_INSTALL_TARGET}/bin"
