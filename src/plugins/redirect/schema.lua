@@ -1,38 +1,49 @@
-local Errors = require "kong.dao.errors"
+local typedefs = require "kong.db.schema.typedefs"
+
+
+local is_present = function(v)
+  return type(v) == "string" and #v > 0
+end
+
 
 return {
+  name = "redirect",
   fields = {
-    status_code = { type = "number", default = 503 },
-    message = { type = "string" },
-    content_type = { type = "string" },
-    body = { type = "string" },
-    location = { type = "string" },
-    append_request_uri_to_location = {type = "boolean", default = true},
-    append_query_string_to_location = {type = "boolean", default = false},
+    { run_on = typedefs.run_on_first },
+    { config = {
+        type = "record",
+        fields = {
+          { status_code = {
+            type = "integer",
+            default = 301,
+            between = { 300, 399 },
+          }, },
+          { message = { type = "string" }, },
+          { content_type = { type = "string" }, },
+          { body = { type = "string" }, },
+          { location = { type = "string" }, },
+          { append_request_uri_to_location = {
+            type = "boolean",
+            default = true
+          }, },
+          { append_query_string_to_location = {
+            type = "boolean",
+            default = false
+          }, },
+        },
+        custom_validator = function(config)
+          if is_present(config.message)
+          and(is_present(config.content_type)
+              or is_present(config.body)) then
+            return nil, "message cannot be used with content_type or body"
+          end
+          if is_present(config.content_type)
+          and not is_present(config.body) then
+            return nil, "content_type requires a body"
+          end
+          return true
+        end,
+      },
+    },
   },
-  self_check = function(schema, plugin_t, dao, is_updating)
-    if plugin_t.status_code then
-      if plugin_t.status_code < 100 or plugin_t.status_code > 599 then
-        return false, Errors.schema("status_code must be between 100 .. 599")
-      end
-    end
-
-    if plugin_t.message then
-      if plugin_t.content_type or plugin_t.body then
-        return false, Errors.schema("message cannot be used with content_type or body")
-      end
-    else
-      if plugin_t.content_type and not plugin_t.body then
-        return false, Errors.schema("content_type requires a body")
-      end
-    end
-
-    if plugin_t.location then
-      if plugin_t.status_code < 300 or plugin_t.status_code > 399 then
-        return false, Errors.schema("location can only be used with status_code between 300 .. 399")
-      end
-    end
-
-    return true
-  end
 }
