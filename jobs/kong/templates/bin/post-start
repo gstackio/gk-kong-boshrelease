@@ -15,8 +15,6 @@
         x.to_json
     end
 
-    require "securerandom"
-
     has_admin_api = p("admin.http_enabled") || p("admin.tls.enabled")
     if !has_admin_api || !spec.bootstrap
 %>

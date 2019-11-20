@@ -2,7 +2,7 @@
 
 - Bumped to Kong v1.0.4 ([changelog](https://github.com/Kong/kong/blob/1.0.4/CHANGELOG.md#104))
 
-- The custom `redirect` plugin has been rewritted to conform to the Kong v1.x.x Plugin Development Kit.
+- The custom `redirect` plugin has been rewritted to conform to the Kong v1.x.x Plugin Development Kit. When the plugin is installed, it will be covered by smoke tests.
 
 - The `redirect` plugin now restricts the `status_code` config field to the `300..399` range only.
 
