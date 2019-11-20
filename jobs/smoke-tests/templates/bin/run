@@ -97,39 +97,6 @@ admin GET "/" \
     | tr -d '\r' | sed -e '/^$/,$d' # only display the HTTP response headers
 echo $'\n'
 
-function cleanup_api() {
-    # delete the API
-    admin DELETE "/apis/${API_NAME}"
-}
-
-cleanup_api || true # cleanup any stale API
-echo
-
-# create an API
-admin POST "/apis/" \
-    --data "name=${API_NAME}" \
-    --data "hosts=example.com" \
-    --data "upstream_url=https://mockbin.org"
-echo $'\n'
-
-# delete API uppon exit
-defer cleanup_api
-
-# wait for the API to be created
-sleep $((<%= esc(link("kong").p("datastore.db_update_frequency_in_sec")) %> + 1))
-
-# get the created API
-admin GET "/apis/${API_NAME}"
-echo $'\n'
-
-# send a request through the API
-proxy GET "/request?toto=titi&tata=tutu" \
-        --header "Host: example.com" \
-        --header "Content-Type: application/json" \
-        --data-raw '{"plip": "plop"}' \
-    | tr -d '\r' | sed -e '/^$/,$d' # only display the HTTP response headers
-echo $'\n'
-
 
 
 function cleanup_service() {
