@@ -5,7 +5,7 @@ set -eo pipefail
 RELEASE_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 readonly RELEASE_DIR
 
-readonly KONG_VERSION="0.14.1"
+readonly KONG_VERSION="0.15.0"
 readonly DEFAULT_CONFIG="${RELEASE_DIR}/tmp/kong-${KONG_VERSION}-default.conf"
 
 if [[ ! -f "${DEFAULT_CONFIG}" ]]; then
