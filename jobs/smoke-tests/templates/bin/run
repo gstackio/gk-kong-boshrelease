@@ -1,8 +1,18 @@
 #!/usr/bin/env bash
 <%
     require "shellwords"
-    def esc(x)
+    def sh_esc(x)
         Shellwords.shellescape(x)
+    end
+
+    require "uri"
+    def uri_esc(x)
+        URI.encode_www_form_component(x)
+    end
+
+    require "json"
+    def js_esc(x)
+        x.to_json
     end
 
     adm_username = link("kong").p("admin.basic_auth.username")
@@ -18,12 +28,16 @@
     end
 
     main_address = link("kong").instances.first.address
+
+    require "securerandom"
+    service_uuid = SecureRandom.uuid
+    route_uuid = SecureRandom.uuid
 -%>
 
 set -eo pipefail
 
 function prepend_datetime() {
-    awk -W interactive '{ system("echo -n [$(date +%FT%T%z)]"); print " " $0 }'
+    awk -W interactive '{ system("echo -n [$(date +%FT%TZ)]"); print " " $0 }'
 }
 
 exec \
@@ -31,11 +45,10 @@ exec \
     1> >(prepend_datetime >&3) \
     2>&1
 
-readonly ADM_BASE_URI=<%= esc("#{pxy_scheme}://#{main_address}:#{pxy_port}#{adm_path}") %>
-readonly PXY_BASE_URI=<%= esc("#{pxy_scheme}://#{main_address}:#{pxy_port}") %>
-readonly API_NAME=smoke-tests-mockbin-api
-readonly SERVICE_ID=be7c18b4-8d1b-4368-b617-3661ccf663f0
-readonly ROUTE_ID=e4a90873-8af0-44e9-a31f-9b4b08df9919
+readonly ADM_BASE_URI=<%= sh_esc("#{pxy_scheme}://#{main_address}:#{pxy_port}#{adm_path}") %>
+readonly PXY_BASE_URI=<%= sh_esc("#{pxy_scheme}://#{main_address}:#{pxy_port}") %>
+readonly SERVICE_UUID_URLENC=<%= sh_esc(uri_esc(service_uuid)) %>
+readonly ROUTE_UUID_URLENC=<%= sh_esc(uri_esc(route_uuid)) %>
 
 # setup cleanup framework
 defer_stack=()
@@ -61,7 +74,7 @@ export HOME=/var/vcap/data/smoke-tests/fake-home
 mkdir -p "${HOME}"
 touch "${HOME}/.netrc"
 chmod 600 "${HOME}/.netrc" # restrict access before writing content
-echo <%= esc("machine #{main_address} login #{adm_username} password #{adm_password}") %> \
+echo <%= sh_esc("machine #{main_address} login #{adm_username} password #{adm_password}") %> \
     > "${HOME}/.netrc"
 
 function cleanup_netrc() {
@@ -74,16 +87,18 @@ function request() {
 
     (
         set -x
-        curl -fsSL -X "${verb}" \
+        curl --silent --fail --show-error --location \
             --cacert "/var/vcap/jobs/smoke-tests/tls/${ca_name}.crt" \
+            --request "${verb}" \
             --url "${base}${uri_path}" \
-            "$@" \
-            --include
+            --include \
+            "$@"
     )
 }
 
 function admin() {
-    request "${ADM_BASE_URI}" "admin_ca" "$@" --netrc
+    local verb=$1 uri_path=$2; shift 2
+    request "${ADM_BASE_URI}" "admin_ca" "${verb}" "${uri_path}" --netrc "$@"
 }
 
 function proxy() {
@@ -92,57 +107,92 @@ function proxy() {
 
 
 
-# query the 'info' endpoint
-admin GET "/" \
-    | tr -d '\r' | sed -e '/^$/,$d' # only display the HTTP response headers
+failure="no"
+
+
+
+# query the 'node informantion' endpoint
+kong_info_response=$(admin GET "/" \
+    | tr -d '\r')
+sed -e '/^$/,$d' <<< "${kong_info_response}" # only display the HTTP response headers
 echo $'\n'
+
+if which "jq" > /dev/null; then
+    kong_info=$(sed -e '1,/^$/d' <<< "${kong_info_response}")
+    jq '{ "tagline": .tagline, "version": .version, "node_id": .node_id, "hostname": .hostname }' <<< "${kong_info}"
+    echo $'\n'
+fi
+
+
+
+# query the 'node status' endpoint
+kong_status_response=$(admin GET "/status" \
+    | tr -d '\r')
+sed -e '/^$/,$d' <<< "${kong_status_response}" # only display the HTTP response headers
+echo $'\n'
+
+kong_status=$(sed -e '1,/^$/d' <<< "${kong_status_response}")
+if which "jq" > /dev/null; then
+    jq '.' <<< "${kong_status}"
+    echo $'\n'
+fi
+
+if ! grep -qF '"database":{"reachable":true}' <<< "${kong_status}"; then
+    echo >&2 "ERROR: expected the database to be reachable in Kong status." \
+        "Status obtained: '${kong_status}'"
+    failure="yes"
+fi
 
 
 
 function cleanup_service() {
     # delete the Service
-    admin DELETE "/services/${SERVICE_ID}"
+    admin DELETE "/services/${SERVICE_UUID_URLENC}" | tr -d '\r'
 }
 
 cleanup_service || true # cleanup any stale Service
 
 # create a backend Service
-admin PUT "/services/${SERVICE_ID}" \
-    --data "url=https://mockbin.org"
+admin PUT "/services/${SERVICE_UUID_URLENC}" \
+        --data "name=smoke-tests-service" \
+        --data "url=https://mockbin.org" \
+    | tr -d '\r'
 echo $'\n'
 
 # delete the created Service uppon exit
 defer cleanup_service
 
 # wait for the Service to be created
-sleep $((<%= esc(link("kong").p("datastore.db_update_frequency_in_sec")) %> + 1))
+sleep $((<%= sh_esc(link("kong").p("datastore.db_update_frequency_in_sec")) %> + 1))
 
 # get the created Service
-admin GET "/services/${SERVICE_ID}"
+admin GET "/services/${SERVICE_UUID_URLENC}" | tr -d '\r'
 echo $'\n'
 
 
 function cleanup_route() {
     # delete the Route
-    admin DELETE "/routes/${ROUTE_ID}"
+    admin DELETE "/routes/${ROUTE_UUID_URLENC}" | tr -d '\r'
 }
 
 cleanup_route || true # cleanup any stale Route
 
 # create a backend Route
-admin PUT "/routes/${ROUTE_ID}" \
-    --data "hosts=example.org" \
-    --data "service.id=${SERVICE_ID}"
+admin PUT "/routes/${ROUTE_UUID_URLENC}" \
+        --data "name=smoke-tests-route" \
+        --data "hosts=example.org" \
+        --data "service.id=${SERVICE_UUID_URLENC}" \
+    | tr -d '\r'
 echo $'\n'
 
 # delete the created Route uppon exit
 defer cleanup_route
 
 # wait for the Route to be created
-sleep $((<%= esc(link("kong").p("datastore.db_update_frequency_in_sec")) %> + 1))
+sleep $((<%= sh_esc(link("kong").p("datastore.db_update_frequency_in_sec")) %> + 1))
 
 # get the created Route
-admin GET "/routes/${ROUTE_ID}"
+admin GET "/routes/${ROUTE_UUID_URLENC}" | tr -d '\r'
 echo $'\n'
 
 
@@ -155,5 +205,66 @@ proxy GET "/request?toto=titi&tata=tutu" \
 echo $'\n'
 
 
+
+existing_redirect_plugins=$(admin GET \
+    "/plugins?name=redirect&service_id=${SERVICE_UUID_URLENC}")
+
+if grep -qF '"data":[]' <<< "${existing_redirect_plugins}"; then
+    echo "INFO: the 'redirect' plugin is not installed. Skipping related smoke tests."
+else
+    echo "INFO: running 'redirect' plugin smoke tests..."
+
+    # associate the 'redirect' plugin to the existing backend Service
+    admin POST "/routes/${ROUTE_UUID_URLENC}/plugins" \
+            --header "Content-Type: application/json" \
+            --data-raw <%= sh_esc(js_esc({
+                    "name"     => "redirect",
+                    "config"   => {
+                        "status_code" => 308,
+                        "location" => "https://example.net/toto/titi",
+                        "append_request_uri_to_location" => true,
+                        "append_query_string_to_location" => true,
+                    },
+                })) %> \
+        | tr -d '\r'
+    echo $'\n'
+
+    # wait for the Plugin to be activated
+    sleep $((<%= sh_esc(link("kong").p("datastore.db_update_frequency_in_sec")) %> + 1))
+
+    # send a request through the Route and Service
+    response=$(proxy GET "/request?toto=titi&tata=tutu" \
+            --no-location --no-fail --no-show-error \
+            --header "Host: example.org" \
+            --header "Content-Type: application/json" \
+            --data-raw '{"plip": "plop"}' \
+        | tr -d '\r')
+    sed -e '/^$/,$d' <<< "${response}" # only display the HTTP response headers
+    echo $'\n'
+
+    actual_location=$(sed -e '/^$/,$d' <<< "${response}" | awk -F": " 'tolower($0) ~ /^location:/ {print $2}')
+    expected_location="https://example.net/toto/titi/request?toto=titi&tata=tutu"
+    if [[ ${actual_location} != ${expected_location} ]]; then
+        echo >&2 "ERROR: expected the 'Location' header" \
+            "to be '${expected_location}'," \
+            "but was '${actual_location}'"
+        failure="yes"
+    fi
+
+    actual_body=$(sed -e '1,/^$/d' <<< "${response}")
+    expected_body='{"message":"Permanent Redirect"}'
+    if [[ ${actual_body} != ${expected_body} ]]; then
+        echo >&2 "ERROR: expected the response body" \
+            "to be '${expected_body}'," \
+            "but was '${actual_body}'"
+        failure="yes"
+    fi
+
+fi
+
+
+if [[ ${failure} == "yes" ]]; then
+    exit 1
+fi
 
 exit 0
