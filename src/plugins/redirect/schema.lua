@@ -18,10 +18,22 @@ return {
             default = 301,
             between = { 300, 399 },
           }, },
-          { message = { type = "string" }, },
-          { content_type = { type = "string" }, },
-          { body = { type = "string" }, },
-          { location = { type = "string" }, },
+          { message = {
+            type = "string",
+            required = false,
+          }, },
+          { content_type = {
+            type = "string",
+            required = false,
+          }, },
+          { body = {
+            type = "string",
+            required = false,
+          }, },
+          { location = {
+            type = "string",
+            required = false,
+          }, },
           { append_request_uri_to_location = {
             type = "boolean",
             default = true
