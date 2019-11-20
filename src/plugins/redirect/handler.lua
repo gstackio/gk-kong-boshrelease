@@ -9,11 +9,24 @@ local kong = kong
 local server_header = meta._SERVER_TOKENS
 
 
+local DEFAULT_RESPONSE = {
+  [300] = "Multiple Choices",
+  [301] = "Moved Permanently",
+  [302] = "Found",
+  [303] = "See Other",
+  [304] = "Not Modified",
+  [305] = "Use Proxy",
+  [306] = "Switch Proxy",
+  [307] = "Temporary Redirect",
+  [308] = "Permanent Redirect",
+}
+
+
 local RedirectHandler = BasePlugin:extend()
 
 
 RedirectHandler.PRIORITY = 2
-RedirectHandler.VERSION = "0.1.1"
+RedirectHandler.VERSION = "0.2.0"
 
 
 function RedirectHandler:new()
@@ -29,7 +42,7 @@ function RedirectHandler:access(conf)
 
   if not content then
     local encoded, err
-    encoded, err = cjson.encode({ message = conf.message })
+    encoded, err = cjson.encode({ message = conf.message or DEFAULT_RESPONSE[status] })
     if encoded then
       content = encoded
     else
