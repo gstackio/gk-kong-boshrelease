@@ -1,5 +1,13 @@
 ### Improvements
 
+- Bumped to Kong v1.0.4 ([changelog](https://github.com/Kong/kong/blob/1.0.4/CHANGELOG.md#104))
+
+- The custom `redirect` plugin has been rewritted to conform to the Kong v1.x.x Plugin Development Kit. When the plugin is installed, it will be covered by smoke tests.
+
+- The `redirect` plugin now restricts the `status_code` config field to the `300..399` range only.
+
+- The `redirect` plugin now provides default messages when both the `message` and `body` config fields are left unspecified. (Such responses appear as a JSON payload, in the `3xx` response body.)
+
 - Removed stale Konga blob, leading to 2MB smaller release `.tgz` file.
 
 - Bumped BPM to v1.1.5 in the standard deployment manifest.
@@ -8,6 +16,8 @@
 
 
 ### Breaking Changes
+
+- Kong v1.0.4 has a number of breaking changes, compared to v0.15.0. See the [v1.0.0 changelog](https://github.com/Kong/kong/blob/1.0.4/CHANGELOG.md#100) for more information.
 
 - The `kong.yml` deployment manifest is renamed `gk-kong.yml` to match the BOSH Release name
 

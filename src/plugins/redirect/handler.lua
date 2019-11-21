@@ -1,71 +1,31 @@
 local BasePlugin = require "kong.plugins.base_plugin"
 local singletons = require "kong.singletons"
-local responses = require "kong.tools.responses"
 local constants = require "kong.constants"
 local meta = require "kong.meta"
-local cjson = require "cjson.safe"
 
 
-local ngx = ngx
-
-local req_get_uri_args = ngx.req.get_uri_args
-local ngx_log = ngx.log
--- local DEBUG = ngx.DEBUG
-
-
+local kong = kong
 local server_header = meta._SERVER_TOKENS
+
+
+local DEFAULT_RESPONSE = {
+  [300] = "Multiple Choices",
+  [301] = "Moved Permanently",
+  [302] = "Found",
+  [303] = "See Other",
+  [304] = "Not Modified",
+  [305] = "Use Proxy",
+  [306] = "Switch Proxy",
+  [307] = "Temporary Redirect",
+  [308] = "Permanent Redirect",
+}
 
 
 local RedirectHandler = BasePlugin:extend()
 
 
 RedirectHandler.PRIORITY = 2
-RedirectHandler.VERSION = "0.1.0"
-
-
-local function flush(ctx)
-  ctx = ctx or ngx.ctx
-
-  local response = ctx.delayed_response
-
-  local status         = response.status_code
-  local content        = response.content
-  local content_type   = response.content_type
-  local location       = response.location
-  local append_req_uri = response.append_req_uri
-  local append_qs      = response.append_qs
-
-  if not content_type then
-    content_type = "application/json; charset=utf-8";
-  end
-
-  ngx.status = status
-
-  if singletons.configuration.enabled_headers[constants.HEADERS.SERVER] then
-    ngx.header[constants.HEADERS.SERVER] = server_header
-  else
-    ngx.header[constants.HEADERS.SERVER] = nil
-  end
-
-  -- ngx_log(DEBUG, "Nginx request URI: [", ngx.var.request_uri, "]")
-  -- ngx_log(DEBUG, "Nginx query string: [", ngx.var.query_string, "]")
-  -- ngx_log(DEBUG, "Configured location: [", location, "]")
-
-  if location then
-    if append_req_uri then
-      location = location .. ngx.var.request_uri
-    elseif append_qs then
-      location = location .. "?" .. ngx.var.query_string
-    end
-    ngx.header["Location"] = location
-  end
-
-  ngx.header["Content-Type"]   = content_type
-  ngx.header["Content-Length"] = #content
-  ngx.print(content)
-
-  return ngx.exit(status)
-end
+RedirectHandler.VERSION = "0.2.0"
 
 
 function RedirectHandler:new()
@@ -76,46 +36,46 @@ end
 function RedirectHandler:access(conf)
   RedirectHandler.super.access(self)
 
-  local message = conf.message
+  local status       = conf.status_code
+  local content      = conf.body
+  local content_type = conf.content_type
 
-  local content, content_type
-  if not message then
-    content = conf.body
-    content_type = conf.content_type
-  else
-    local encoded, err
-    encoded, err = cjson.encode({message = message})
-    if encoded then
-      content = encoded
-    else
-      ngx_log(ngx.ERR, "could not encode value: ", err)
-      content = ""
-    end
-    content_type = nil -- default is "application/json"
+  if not content then
+    content = { ["message"] = conf.message or DEFAULT_RESPONSE[status] }
+    content_type = nil -- reset to the default 'application/json'
   end
 
-  local ctx = ngx.ctx
-
-  if not ctx.delay_response then
-    ngx_log(ngx.ERR, "failed at redirecting: response is not delayed")
-  end
-  if ctx.delayed_response then
-    ngx_log(ngx.ERR, "failed at redirecting: ctx.delayed_response is already set")
+  if not content_type then
+    content_type = "application/json; charset=utf-8"
   end
 
-  ctx.delayed_response = {
-    status_code    = conf.status_code,
-    message        = message,
-    content        = content,
-    content_type   = content_type,
-    location       = conf.location,
-    append_req_uri = conf.append_request_uri_to_location,
-    append_qs      = conf.query_string_to_location,
+  local headers = {
+    ["Content-Type"] = content_type,
   }
-  -- ngx_log(DEBUG, "Delayed response set. content: [", content, "]")
 
-  ctx.delayed_response_callback = flush
-  return
+  if singletons.configuration.enabled_headers[constants.HEADERS.SERVER] then
+    headers[constants.HEADERS.SERVER] = server_header
+  end
+
+  local location = conf.location
+
+  if location then
+    if conf.append_request_uri_to_location then
+      location = location .. kong.request.get_path()
+    end
+    if conf.append_query_string_to_location then
+      location = location .. "?" .. kong.request.get_raw_query()
+    end
+    headers["Location"] = location
+  end
+
+  -- kong.log.debug("Nginx request URI: [", kong.request.get_path(), "]")
+  -- kong.log.debug("Nginx query string: [", kong.request.get_raw_query(), "]")
+  -- kong.log.debug("Computed content: [", content, "]")
+  -- kong.log.debug("Configured location: [", location, "]")
+  -- kong.log.debug("Computed response headers: [", headers, "]")
+
+  return kong.response.exit(status, content, headers)
 end
 
 
