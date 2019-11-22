@@ -6,6 +6,7 @@ description: |
 
 templates:
   config/bpm.yml: config/bpm.yml
+  bin/dns/healthy: bin/dns/healthy
   bin/bpm-prestart: bin/bpm-prestart
   bin/kong: bin/kong
   bin/post-start: bin/post-start

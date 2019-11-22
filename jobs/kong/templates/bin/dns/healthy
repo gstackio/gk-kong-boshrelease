@@ -1,0 +1,54 @@
+#!bin/bash
+<%
+    require "shellwords"
+    def sh_esc(x)
+        Shellwords.shellescape(x)
+    end
+
+    require "uri"
+    def uri_esc(x)
+        URI.encode_www_form_component(x)
+    end
+
+    has_proxy = p("proxy.http_enabled") || p("proxy.tls.enabled")
+    has_admin_api = p("admin.http_enabled") || p("admin.tls.enabled")
+    if !has_proxy && !has_admin_api
+%>
+# Note: this DNS healthcheck script contains code only on nodes that either
+# have the proxy or the admin API enabled.
+<%
+    elsif !has_admin_api
+
+	    if p("proxy.tls.enabled")
+	        pxy_port = p("proxy.tls.bind_port")
+	    else
+	        pxy_port = p("proxy.bind_port")
+	    end
+%>
+exec nc -w 1 -v "127.0.0.1" <%= sh_esc(pxy_port) %> < /dev/null
+<%
+    else
+
+        if p("admin.tls.enabled")
+            adm_scheme = "https"
+            adm_port = p("admin.tls.bind_port")
+        else
+            adm_scheme = "http"
+            adm_port = p("admin.bind_port")
+        end
+        adm_base_uri = "#{adm_scheme}://127.0.0.1:#{uri_esc(adm_port)}"
+-%>
+
+set -ueo pipefail
+
+kong_status_json=$(curl --silent --fail --show-error \
+    --cacert "/var/vcap/jobs/kong/tls/admin_ca.crt" \
+    --url <%= sh_esc("#{adm_base_uri}/status") %>)
+if ! grep -qF '"database":{"reachable":true}' <<< "${kong_status_json}"; then
+	exit 1
+fi
+
+exit 0
+<%
+    end # has_admin_api
+-%>

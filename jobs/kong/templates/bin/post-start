@@ -18,8 +18,8 @@
     has_admin_api = p("admin.http_enabled") || p("admin.tls.enabled")
     if !has_admin_api || !spec.bootstrap
 %>
-# Note: this 'post-start' script contains code anly on bootstraps nodes and
-# when amin API is enabled.
+# Note: this 'post-start' script contains code only on bootstrap nodes and
+# when admin API is enabled.
 <%
     else
 
@@ -67,7 +67,7 @@ function request() {
     local verb=$1 uri_path=$2; shift 2
 
     curl -fsSL -X "${verb}" \
-        --cacert /var/vcap/jobs/kong/tls/admin_ca.crt \
+        --cacert "/var/vcap/jobs/kong/tls/admin_ca.crt" \
         --url "${ADM_BASE_URI}${uri_path}" \
         --header "Content-Type: application/json" \
         "$@"
