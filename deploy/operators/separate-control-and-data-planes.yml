@@ -29,14 +29,20 @@
         provides:
           kong: { as: &kong_admin_link kong-admin }
         properties:
+          extra_plugin_packages:
+            - *kong_redirect_plugin_name
+          extra_plugins:
+            - redirect
           proxy:
             http_enabled: false
             tls:
               # We keep a proxy on the 'kong-control' instances only to expose
               # the admin API with some access restriction.
               #
-              # Actual data plane traffic is handled by the nodes from the
-              # 'kong' instance group above.
+              # Actual data plane traffic is supposed to be handled by the
+              # nodes from the 'kong' instance group above, even though
+              # technically the control plane nodes will also be able to
+              # handle any data plane traffic.
               enabled: true
               cert: ((kong_tls))
           admin:
@@ -50,6 +56,9 @@
       - name: smoke-tests
         release: gk-kong
         consumes:
+          # We link the smoke tests to the admin API only. Data-plane requests
+          # will be made against control-place nodes, until we have the smoke
+          # tests properly supporting separated data-plane.
           kong: { from: *kong_admin_link }
     stemcell: default
     vm_type: default
