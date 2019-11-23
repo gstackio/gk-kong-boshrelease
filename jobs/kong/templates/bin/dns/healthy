@@ -41,10 +41,13 @@ exec nc -w 1 -v "127.0.0.1" <%= sh_esc(pxy_port) %> < /dev/null
 
 set -ueo pipefail
 
-kong_status_json=$(curl --silent --fail --show-error \
-    --cacert "/var/vcap/jobs/kong/tls/admin_ca.crt" \
-    --url <%= sh_esc("#{adm_base_uri}/status") %>)
-if ! grep -qF '"database":{"reachable":true}' <<< "${kong_status_json}"; then
+source "/var/vcap/packages/jq-1.6-linux/runtime.env"
+
+database_reachable=$(curl --silent --fail --show-error \
+        --cacert "/var/vcap/jobs/kong/tls/admin_ca.crt" \
+        --url <%= sh_esc("#{adm_base_uri}/status") %> \
+    | jq --raw-output '.database.reachable')
+if [[ ${database_reachable} != "true" ]]; then
 	exit 1
 fi
 

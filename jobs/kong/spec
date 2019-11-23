@@ -25,6 +25,7 @@ packages:
   - luarocks
   - openresty
   - openssl
+  - jq-1.6-linux
 
 consumes:
   - name: postgres

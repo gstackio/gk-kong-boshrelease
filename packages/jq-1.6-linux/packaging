@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+
+set -ueo pipefail
+
+function _config() {
+    readonly ONIGURUMA_VERSION=6.9.3
+    readonly JQ_VERSION=1.6
+}
+
+function main() {
+    _config
+    _setup
+
+    _workaround_missing_libraries
+
+    tar -xf "jq/onig-${ONIGURUMA_VERSION}.tar.gz"
+
+    readonly ONIGURUMA_DIR="${PWD}/oniguruma-prefix"
+    mkdir -p "${ONIGURUMA_DIR}"
+
+    pushd "onig-${ONIGURUMA_VERSION}"
+        # autoreconf --verbose --force --install
+        ./configure --prefix="${ONIGURUMA_DIR}"
+        make -j${CORES_COUNT}
+        make install
+    popd
+
+
+    tar -xf "jq/jq-${JQ_VERSION}.tar.gz"
+
+    pushd "jq-${JQ_VERSION}"
+        ./configure \
+            --prefix="${BOSH_INSTALL_TARGET}" \
+            --with-oniguruma="${ONIGURUMA_DIR}" \
+            --disable-valgrind
+        make -j${CORES_COUNT} LDFLAGS="-all-static"
+        # make check # takes 20-30 seconds more
+        make install
+    popd
+
+    cp -v "jq-${JQ_VERSION}-linux/runtime.env" "${BOSH_INSTALL_TARGET}/"
+}
+
+function _setup() {
+    # Detect # of CPUs so make jobs can be parallelized
+    readonly CORES_COUNT=$(grep -c ^processor /proc/cpuinfo)
+}
+
+function _workaround_missing_libraries() {
+
+    # NOTE: We use the '-o APT::Sandbox::User=root' option as a workaround for
+    # this error: "Could not execute 'apt-key' to verify signature".
+    #
+    # See: https://github.com/cloudfoundry/bosh-linux-stemcell-builder/issues/39#issuecomment-418136627
+    apt-get --option APT::Sandbox::User="root" update
+    apt-get --assume-yes install "libtool" "autoconf"
+}
+
+main "$@"

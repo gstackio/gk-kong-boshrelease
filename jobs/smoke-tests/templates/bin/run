@@ -55,6 +55,8 @@ exec \
     1> >(prepend_datetime >&3) \
     2>&1
 
+source "/var/vcap/packages/jq-1.6-linux/runtime.env"
+
 readonly ADM_BASE_URI=<%= sh_esc("#{adm_scheme}://#{adm_address}:#{adm_port}#{adm_path}") %>
 readonly PXY_BASE_URI=<%= sh_esc("#{pxy_scheme}://#{pxy_address}:#{pxy_port}") %>
 readonly SERVICE_UUID_URLENC=<%= sh_esc(uri_esc(service_uuid)) %>
@@ -128,11 +130,9 @@ sed -e '/^$/,$d' <<< "${kong_info_response}" # only display the HTTP response he
 echo $'\n'
 
 kong_info=$(sed -e '1,/^$/d' <<< "${kong_info_response}")
-if which "jq" > /dev/null; then
-    jq '{ "tagline": .tagline, "version": .version, "node_id": .node_id, "hostname": .hostname }' \
-        <<< "${kong_info}"
-    echo $'\n'
-fi
+jq '{ "tagline": .tagline, "version": .version, "node_id": .node_id, "hostname": .hostname }' \
+    <<< "${kong_info}"
+echo $'\n'
 
 
 
@@ -143,14 +143,13 @@ sed -e '/^$/,$d' <<< "${kong_status_response}" # only display the HTTP response 
 echo $'\n'
 
 kong_status=$(sed -e '1,/^$/d' <<< "${kong_status_response}")
-if which "jq" > /dev/null; then
-    jq '.' <<< "${kong_status}"
-    echo $'\n'
-fi
+jq '.' <<< "${kong_status}"
+echo $'\n'
 
-if ! grep -qF '"database":{"reachable":true}' <<< "${kong_status}"; then
+database_reachable=$(jq --raw-output '.database.reachable' <<< "${kong_status}")
+if [[ ${database_reachable} != "true" ]]; then
     echo >&2 "ERROR: expected the database to be reachable in Kong status." \
-        "Status obtained: '${kong_status}'"
+        "Expected 'database.reachable' to be true' but was: '${database_reachable}'."
     failure="yes"
 fi
 
@@ -208,17 +207,23 @@ echo $'\n'
 
 
 # send a request through the Route and Service
-proxy GET "/request?toto=titi&tata=tutu" \
+mockbin_response=$(proxy GET "/request?toto=titi&tata=tutu" \
         --header "Host: example.org" \
         --header "Content-Type: application/json" \
         --data-raw '{"plip": "plop"}' \
-    | tr -d '\r' | sed -e '/^$/,$d' # only display the HTTP response headers
+    | tr -d '\r')
+sed -e '/^$/,$d' <<< "${mockbin_esponse}" # only display the HTTP response headers
+echo $'\n'
+
+mockbin_body=$(sed -e '1,/^$/d' <<< "${mockbin_response}")
+jq '.' <<< "${mockbin_body}"
 echo $'\n'
 
 
 
-if grep -q '"loaded_plugins":{[^}]*"redirect":true[,}]' <<< "${kong_info}"; then
-    echo "INFO: the 'redirect' plugin is not loaded in Kong. Skipping related smoke tests."
+redirect_plugin_available=$(jq --raw-output '.plugins.available_on_server.redirect' <<< "${kong_info}")
+if [[ ${redirect_plugin_available} != "true" ]]; then
+    echo "INFO: the 'redirect' plugin is not available in Kong. Skipping related smoke tests."
 else
     echo "INFO: running 'redirect' plugin smoke tests..."
 

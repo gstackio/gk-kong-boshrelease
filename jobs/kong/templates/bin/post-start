@@ -55,6 +55,8 @@ exec \
     1> >(prepend_datetime >&3) \
     2> >(prepend_datetime >&4)
 
+source "/var/vcap/packages/jq-1.6-linux/runtime.env"
+
 readonly ADM_BASE_URI=<%= sh_esc(adm_base_uri) %>
 readonly ADM_SERVICE_UUID_URLENC=<%= sh_esc(uri_esc(adm_service_uuid)) %>
 readonly ADM_ROUTE_UUID_URLENC=<%= sh_esc(uri_esc(adm_route_uuid)) %>
@@ -92,10 +94,12 @@ request PUT "/routes/${ADM_ROUTE_UUID_URLENC}" \
         })) %> \
     --include
 
-existing_basic_auth_plugins=$(request GET \
-    "/plugins?name=basic-auth&service_id=${ADM_SERVICE_UUID_URLENC}")
+plugin_uuid=$(request GET "/plugins" \
+    | jq --raw-output \
+        --arg adm_service_uuid <%= sh_esc(adm_service_uuid) %> \
+        '.data[] | select(.name == "basic-auth" and .service.id == $adm_service_uuid) | .id')
 
-if grep -qF '"data":[]' <<< "${existing_basic_auth_plugins}"; then
+if [[ -z ${plugin_uuid} ]]; then
     # Enable the 'Basic Authentication' plugin on the Admin API Service
     request POST "/plugins" \
         --data-raw <%= sh_esc(js_esc({
@@ -111,10 +115,6 @@ if grep -qF '"data":[]' <<< "${existing_basic_auth_plugins}"; then
             })) %> \
         --include
 else
-    # FIXME: using 'jq' is a must here
-    plugin_uuid=$(sed -rne 's/^(\{|.*,)"id":"([0-9A-Fa-f-]+)"(,.*|\})$/\2/p' \
-                        <<< "${existing_basic_auth_plugins}")
-
     # Update the 'Basic Authentication' plugin on the Admin API Service
     request PUT "/plugins/${plugin_uuid}" \
         --data-raw <%= sh_esc(js_esc({

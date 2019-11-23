@@ -6,7 +6,8 @@ templates:
   tls/proxy_ca.crt: tls/proxy_ca.crt
   tls/admin_ca.crt: tls/admin_ca.crt
 
-packages: []
+packages:
+  - jq-1.6-linux
 
 consumes:
   - name: kong-proxy

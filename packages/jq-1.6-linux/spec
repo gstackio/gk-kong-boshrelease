@@ -1,0 +1,7 @@
+---
+name: jq-1.6-linux
+
+files:
+  - jq/jq-*.tar.gz
+  - jq/onig-*.tar.gz
+  - jq-1.6-linux/runtime.env
