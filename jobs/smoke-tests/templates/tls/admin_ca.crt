@@ -1,1 +1,1 @@
-<%= link("kong").p("admin.tls.cert.ca", "") -%>
+<%= link("kong-admin").p("admin.tls.cert.ca", "") -%>

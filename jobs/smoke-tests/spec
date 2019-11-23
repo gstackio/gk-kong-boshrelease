@@ -9,7 +9,9 @@ templates:
 packages: []
 
 consumes:
-  - name: kong
+  - name: kong-proxy
+    type: kong
+  - name: kong-admin
     type: kong
 
 properties: {}

@@ -8,6 +8,10 @@
     http_enabled: false
     tls: { enabled: false }
 
+- path: /instance_groups/name=kong/jobs/name=kong/provides?/kong
+  type: replace
+  value: { as: &kong_proxy_link kong-proxy }
+
 - path: /instance_groups/name=kong/jobs/name=smoke-tests
   # Note: smoke-tests wouldn't work when Admin API is disabled. So, we move
   # the smoke tests to the 'kong-control' instance group instead.
@@ -39,10 +43,10 @@
               # We keep a proxy on the 'kong-control' instances only to expose
               # the admin API with some access restriction.
               #
-              # Actual data plane traffic is supposed to be handled by the
+              # Actual data-plane traffic is supposed to be handled by the
               # nodes from the 'kong' instance group above, even though
-              # technically the control plane nodes will also be able to
-              # handle any data plane traffic.
+              # technically the control-plane nodes will also be able to
+              # handle data-plane traffic.
               enabled: true
               cert: ((kong_tls))
           admin:
@@ -56,10 +60,8 @@
       - name: smoke-tests
         release: gk-kong
         consumes:
-          # We link the smoke tests to the admin API only. Data-plane requests
-          # will be made against control-place nodes, until we have the smoke
-          # tests properly supporting separated data-plane.
-          kong: { from: *kong_admin_link }
+          kong-proxy: { from: *kong_proxy_link }
+          kong-admin: { from: *kong_admin_link }
     stemcell: default
     vm_type: default
     networks:

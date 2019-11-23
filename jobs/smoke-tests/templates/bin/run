@@ -15,19 +15,29 @@
         x.to_json
     end
 
-    adm_username = link("kong").p("admin.basic_auth.username")
-    adm_password = link("kong").p("admin.basic_auth.password")
-    adm_path = link("kong").p("admin.service.route_path")
+    adm_username = link("kong-admin").p("admin.basic_auth.username")
+    adm_password = link("kong-admin").p("admin.basic_auth.password")
+    adm_path = link("kong-admin").p("admin.service.route_path")
+    adm_address = link("kong-admin").address
 
-    if link("kong").p("proxy.tls.enabled")
-        pxy_scheme = "https"
-        pxy_port = link("kong").p("proxy.tls.bind_port")
+    # Notice: the Kong admin API is proxified with Basic-Auth on the Kong
+    # proxy
+    if link("kong-admin").p("proxy.tls.enabled")
+        adm_scheme = "https"
+        adm_port = link("kong-admin").p("proxy.tls.bind_port")
     else
-        pxy_scheme = "http"
-        pxy_port = link("kong").p("proxy.bind_port")
+        adm_scheme = "http"
+        adm_port = link("kong-admin").p("proxy.bind_port")
     end
 
-    main_address = link("kong").address
+    if link("kong-proxy").p("proxy.tls.enabled")
+        pxy_scheme = "https"
+        pxy_port = link("kong-proxy").p("proxy.tls.bind_port")
+    else
+        pxy_scheme = "http"
+        pxy_port = link("kong-proxy").p("proxy.bind_port")
+    end
+    pxy_address = link("kong-proxy").address
 
     require "securerandom"
     service_uuid = SecureRandom.uuid
@@ -45,8 +55,8 @@ exec \
     1> >(prepend_datetime >&3) \
     2>&1
 
-readonly ADM_BASE_URI=<%= sh_esc("#{pxy_scheme}://#{main_address}:#{pxy_port}#{adm_path}") %>
-readonly PXY_BASE_URI=<%= sh_esc("#{pxy_scheme}://#{main_address}:#{pxy_port}") %>
+readonly ADM_BASE_URI=<%= sh_esc("#{adm_scheme}://#{adm_address}:#{adm_port}#{adm_path}") %>
+readonly PXY_BASE_URI=<%= sh_esc("#{pxy_scheme}://#{pxy_address}:#{pxy_port}") %>
 readonly SERVICE_UUID_URLENC=<%= sh_esc(uri_esc(service_uuid)) %>
 readonly ROUTE_UUID_URLENC=<%= sh_esc(uri_esc(route_uuid)) %>
 
@@ -74,7 +84,7 @@ export HOME=/var/vcap/data/smoke-tests/fake-home
 mkdir -p "${HOME}"
 touch "${HOME}/.netrc"
 chmod 600 "${HOME}/.netrc" # restrict access before writing content
-echo <%= sh_esc("machine #{main_address} login #{adm_username} password #{adm_password}") %> \
+echo <%= sh_esc("machine #{adm_address} login #{adm_username} password #{adm_password}") %> \
     > "${HOME}/.netrc"
 
 function cleanup_netrc() {
@@ -164,7 +174,7 @@ echo $'\n'
 defer cleanup_service
 
 # wait for the Service to be created
-sleep $((<%= sh_esc(link("kong").p("datastore.db_update_frequency_in_sec")) %> + 1))
+sleep $((<%= sh_esc(link("kong-proxy").p("datastore.db_update_frequency_in_sec")) %> + 1))
 
 # get the created Service
 admin GET "/services/${SERVICE_UUID_URLENC}" | tr -d '\r'
@@ -190,7 +200,7 @@ echo $'\n'
 defer cleanup_route
 
 # wait for the Route to be created
-sleep $((<%= sh_esc(link("kong").p("datastore.db_update_frequency_in_sec")) %> + 1))
+sleep $((<%= sh_esc(link("kong-proxy").p("datastore.db_update_frequency_in_sec")) %> + 1))
 
 # get the created Route
 admin GET "/routes/${ROUTE_UUID_URLENC}" | tr -d '\r'
@@ -228,7 +238,7 @@ else
     echo $'\n'
 
     # wait for the Plugin to be activated
-    sleep $((<%= sh_esc(link("kong").p("datastore.db_update_frequency_in_sec")) %> + 1))
+    sleep $((<%= sh_esc(link("kong-proxy").p("datastore.db_update_frequency_in_sec")) %> + 1))
 
     # send a request through the Route and Service
     response=$(proxy GET "/request?toto=titi&tata=tutu" \
