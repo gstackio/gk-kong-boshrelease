@@ -27,7 +27,7 @@
         pxy_port = link("kong").p("proxy.bind_port")
     end
 
-    main_address = link("kong").instances.first.address
+    main_address = link("kong").address
 
     require "securerandom"
     service_uuid = SecureRandom.uuid
