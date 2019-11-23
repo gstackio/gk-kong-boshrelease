@@ -149,7 +149,7 @@ echo $'\n'
 database_reachable=$(jq --raw-output '.database.reachable' <<< "${kong_status}")
 if [[ ${database_reachable} != "true" ]]; then
     echo >&2 "ERROR: expected the database to be reachable in Kong status." \
-        "Expected 'database.reachable' to be true' but was: '${database_reachable}'."
+        "Expected 'database.reachable' to be 'true' but was: '${database_reachable}'."
     failure="yes"
 fi
 
@@ -207,17 +207,36 @@ echo $'\n'
 
 
 # send a request through the Route and Service
+expected_payload='{"plip": "plop"}'
 mockbin_response=$(proxy GET "/request?toto=titi&tata=tutu" \
         --header "Host: example.org" \
         --header "Content-Type: application/json" \
-        --data-raw '{"plip": "plop"}' \
+        --data-raw "${expected_payload}" \
     | tr -d '\r')
 sed -e '/^$/,$d' <<< "${mockbin_esponse}" # only display the HTTP response headers
 echo $'\n'
 
 mockbin_body=$(sed -e '1,/^$/d' <<< "${mockbin_response}")
-jq '.' <<< "${mockbin_body}"
-echo $'\n'
+actual_payload=$(jq --raw-output '.postData.text' <<< "${mockbin_body}")
+if [[ ${actual_payload} != ${expected_payload} ]]; then
+    echo >&2 "ERROR: the returned paylaod from mockbin is different from the originally submitted paylaod." \
+        "Expected '${expected_payload}' but was: '${actual_payload}'."
+    failure="yes"
+fi
+
+actual_query_param1=$(jq --raw-output '.queryString.toto' <<< "${mockbin_body}")
+if [[ ${actual_query_param1} != "titi" ]]; then
+    echo >&2 "ERROR: the returned value for 'toto' query param from mockbin is different from the submitted value." \
+        "Expected 'titi' but was: '${actual_query_param1}'."
+    failure="yes"
+fi
+
+actual_query_param2=$(jq --raw-output '.queryString.tata' <<< "${mockbin_body}")
+if [[ ${actual_query_param2} != "tutu" ]]; then
+    echo >&2 "ERROR: the returned value for 'tata' query param from mockbin is different from the submitted value." \
+        "Expected 'tutu' but was: '${actual_query_param2}'."
+    failure="yes"
+fi
 
 
 
