@@ -3,6 +3,7 @@
 - Fix potential issue with `post-start` Kong admin API setup, that could break whenever some plugins (other than the one for admin API) were configured in the Kong database.
 - Add native support for BOSH DNS health checks using Kong `/status` endpoint (when the Kong admin API is enabled), or a TCP connection check on some Kong proxy port. Now BOSH DNS queries properly return healthy instances.
 - Smoke tests better support the separated control-plane mode, as implemented by the `separate-control-and-data-planes.yml` ops file.
+- Compiled releases are now built on top of the latest stemcell family v621.x
 
 
 ### Caveats
