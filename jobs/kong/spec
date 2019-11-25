@@ -31,6 +31,8 @@ consumes:
   - name: postgres
     type: database
     optional: true
+  - name: kong-admin
+    type: kong
 
 provides:
   - name: kong
@@ -48,6 +50,7 @@ provides:
       - admin.tls.cert
       - admin.basic_auth.username
       - admin.basic_auth.password
+      - admin.service.route_hostname
       - admin.service.route_path
       - datastore.db_update_frequency_in_sec
 
@@ -203,10 +206,15 @@ properties:
       cluster lifecycle.
     default: 4819743a-f069-40fc-a802-6162db4a758e
 
-  # admin.service.hostname:
-  #   description: |
-  #     The fully qualified DNS hostname of the Service that will expose the
-  #     Kong admin API.
+  admin.service.route_hostname:
+    description: |
+      The fully qualified DNS hostname of the Service that will expose the
+      Kong admin API.
+
+      When left unspecified or set to the 'null' value, the admin API will be
+      exposed on the default BOSH DNS address of the instance group targeted
+      by the 'kong-amin' BOSH link.
+    default: null
   admin.service.route_path:
     description: |
       The name of the Service that will expose the Kong admin API.

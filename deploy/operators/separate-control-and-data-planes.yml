@@ -11,6 +11,9 @@
 - path: /instance_groups/name=kong/jobs/name=kong/provides?/kong
   type: replace
   value: { as: &kong_proxy_link kong-proxy }
+- path: /instance_groups/name=kong/jobs/name=kong/consumes?/kong-admin
+  type: replace
+  value: { from: &kong_admin_link kong-admin }
 
 - path: /instance_groups/name=kong/jobs/name=smoke-tests
   # Note: smoke-tests wouldn't work when Admin API is disabled. So, we move
@@ -31,7 +34,9 @@
       - name: kong
         release: gk-kong
         provides:
-          kong: { as: &kong_admin_link kong-admin }
+          kong: { as: *kong_admin_link }
+        consumes:
+          kong-admin: { from: *kong_admin_link }
         properties:
           extra_plugin_packages:
             - *kong_redirect_plugin_name
@@ -72,8 +77,20 @@
 # The Konga UI has to target the 'kong-control' instance group
 - path: /instance_groups/name=ui/jobs/name=konga/consumes?/kong
   type: replace
+  value: { from: *kong_admin_link }
+
+
+
+# Update the BOSH DNS alias used for the admin API, in order to target the
+# 'kong-control' instance group
+- path: /addons/name=bosh-dns-aliases/jobs/name=bosh-dns-aliases/properties/aliases/domain=_.admin-api.service.kong.internal/targets
+  type: replace
   value:
-    from: *kong_admin_link
+    - deployment: ((deployment_name))
+      domain: bosh
+      instance_group: kong-control
+      network: ((network_name))
+      query: _
 
 
 

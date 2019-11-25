@@ -35,6 +35,7 @@
         adm_service_uuid = p("admin.service.uuid")
         adm_service_name = "kong-admin-api"
         adm_route_uuid = p("admin.service.route_uuid")
+        adm_route_hostname = p("admin.service.route_hostname", link("kong-admin").address)
         adm_route_path = p("admin.service.route_path")
 
         adm_auth_plugin_uuid = p("admin.basic_auth.plugin_uuid")
@@ -87,18 +88,24 @@ request PUT "/services/${ADM_SERVICE_UUID_URLENC}" \
     --include
 
 # Create or update the Route for the Admin API
-request PUT "/routes/${ADM_ROUTE_UUID_URLENC}" \
-    --data-raw <%= sh_esc(js_esc({
+<%
+        route_payload = {
             "protocols"      => [ p("proxy.tls.enabled") ? "https" : "http" ],
             "paths"          => [ adm_route_path ],
             "regex_priority" => 100,
             "service"        => { "id" => adm_service_uuid, },
-        })) %> \
+        }
+        if !adm_route_hostname.nil?
+            route_payload["hosts"] = [ adm_route_hostname ]
+        end
+-%>
+request PUT "/routes/${ADM_ROUTE_UUID_URLENC}" \
+    --data-raw <%= sh_esc(js_esc(route_payload)) %> \
     --include
 
 legacy_plugin_uuid=$(request GET "/plugins" \
     | jq --raw-output \
-        --arg adm_service_uuid <%= sh_esc(adm_service_uuid) %> \
+        --arg "adm_service_uuid" <%= sh_esc(adm_service_uuid) %> \
         '.data[] | select(.name == "basic-auth" and .service.id == $adm_service_uuid) | .id')
 
 if [[ -n ${legacy_plugin_uuid} && ${legacy_plugin_uuid} != <%= sh_esc(adm_auth_plugin_uuid) %> ]]; then

@@ -17,7 +17,7 @@ packages:
   - konga
 
 consumes:
-  - name: kong
+  - name: kong-admin
     type: kong
   - name: postgres
     type: database

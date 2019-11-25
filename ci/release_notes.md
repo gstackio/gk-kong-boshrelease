@@ -8,9 +8,17 @@
 - Compiled releases are now built on top of the latest stemcell family v621.x
 
 
+### Breaking changes
+
+- Now the Kong admin API must be exposed on a specific hostname (instead of being exposed on _all_ hosts). The default hostname used is the [default BOSH DNS address](https://bosh.io/docs/dns/#links) (with [`q-s0` query](https://bosh.io/docs/dns/#constructing-queries)) of the Kong admin API instance group.
+- Deployment manifest now require new BOSH links:
+  - New BOSH link in `kong` job, named `kong-admin`.
+  - BOSH link in `konga` job has been renamed `kong-admin`.
+  - Smoke-tests now require both `kong-proxy` and `kong-admin` BOSH links.
+
+
 ### Caveats
 
 - For some unknown reason, when setting the `proxy.injected_headers` property to an empty array `[]`, the `Server:` header is still injected by Kong. This might be an issue in the upstream Kong project.
-- The admin API is exposed on _all_ hosts under the path specified by `admin.service.route_path` (defaulting to `/admin-api`). It can be surprising on some enterprise API host, the `/admin-api` path is actually the Kong admin API.
 - The compilation process of this Release requires an access to the Internet. Kong CE dependencies, which are luarocks packages, are downloaded from [loarocks.org](https://luarocks.org). So, your compilation VMs will access the Internet.
 - Smoke tests require an access to the Internet.

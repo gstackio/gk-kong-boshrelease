@@ -42,27 +42,27 @@ processes:
       #
       # sails_csrf: true
 <%
-    if_link("kong") do |kong|
-    adm_username = kong.p("admin.basic_auth.username")
-    adm_password = kong.p("admin.basic_auth.password")
-    adm_path = kong.p("admin.service.route_path")
+    if_link("kong-admin") do |kong_admin|
+    adm_username = kong_admin.p("admin.basic_auth.username")
+    adm_password = kong_admin.p("admin.basic_auth.password")
+    adm_path = kong_admin.p("admin.service.route_path")
 
-    if kong.p("proxy.tls.enabled")
+    if kong_admin.p("proxy.tls.enabled")
         pxy_scheme = "https"
-        pxy_port = kong.p("proxy.tls.bind_port")
+        pxy_port = kong_admin.p("proxy.tls.bind_port")
     else
         pxy_scheme = "http"
-        pxy_port = kong.p("proxy.bind_port")
+        pxy_port = kong_admin.p("proxy.bind_port")
     end
 
-    main_address = kong.instances.first.address
+    adm_address = kong_admin.p("admin.service.route_hostname", kong_admin.address)
 -%>
-      # KONG_ADMIN_URL: <%= esc("#{pxy_scheme}://#{uri_esc(adm_username)}:#{uri_esc(adm_password)}@#{uri_esc(main_address)}:#{uri_esc(pxy_port)}#{adm_path}") %>
-      sails_kong_admin_url: <%= esc("#{pxy_scheme}://#{uri_esc(adm_username)}:#{uri_esc(adm_password)}@#{uri_esc(main_address)}:#{uri_esc(pxy_port)}#{adm_path}") %>
+      # KONG_ADMIN_URL: <%= esc("#{pxy_scheme}://#{uri_esc(adm_username)}:#{uri_esc(adm_password)}@#{uri_esc(adm_address)}:#{uri_esc(pxy_port)}#{adm_path}") %>
+      sails_kong_admin_url: <%= esc("#{pxy_scheme}://#{uri_esc(adm_username)}:#{uri_esc(adm_password)}@#{uri_esc(adm_address)}:#{uri_esc(pxy_port)}#{adm_path}") %>
       NODE_EXTRA_CA_CERTS: /var/vcap/jobs/konga/config/trusted_ca_certs
       KONGA_SEED_USER_DATA_SOURCE_FILE: /var/vcap/jobs/konga/config/seeded-users.js
 <%
-    end # if_link("kong")
+    end # if_link("kong-admin")
 -%>
 <%
     # Note: scaling horizontally a Sails.js application like Konga requires a

@@ -1,0 +1,24 @@
+---
+
+- path: /instance_groupe/name=kong/jobs/name=kong/properties/service?/hostname
+  type: replace
+  value: q-s0.admin-api.service.kong.internal
+
+- path: /addons/name=kong-aliases?/jobs/name=bosh-dns-aliases
+  type: replace
+  value:
+    name: bosh-dns-aliases
+    release: bosh-dns-aliases
+    properties:
+      aliases:
+        - domain: _.admin-api.service.kong.internal
+          targets:
+            - deployment: ((deployment_name))
+              domain: bosh
+              instance_group: kong
+              network: ((network_name))
+              query: _
+
+- path: /variables/name=kong_tls/options/alternative_names/-
+  type: replace
+  value: "*.admin-api.service.kong.internal"

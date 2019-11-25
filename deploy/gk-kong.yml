@@ -101,6 +101,7 @@ variables:
     options:
       is_ca: true
       common_name: kong-ca
+    update_mode: converge
   - name: kong_tls
     type: certificate
     options:
@@ -110,6 +111,7 @@ variables:
         - "*.kong.((network_name)).((deployment_name)).bosh"
         - "127.0.0.1"
         - "*.ui.((network_name)).((deployment_name)).bosh"
+    update_mode: converge
   - name: konga_db_password
     type: password
   - name: konga_token_secret

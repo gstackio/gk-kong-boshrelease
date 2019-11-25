@@ -15,29 +15,30 @@
         x.to_json
     end
 
-    adm_username = link("kong-admin").p("admin.basic_auth.username")
-    adm_password = link("kong-admin").p("admin.basic_auth.password")
-    adm_path = link("kong-admin").p("admin.service.route_path")
-    adm_address = link("kong-admin").address
-
     # Notice: the Kong admin API is proxified with Basic-Auth on the Kong
     # proxy
-    if link("kong-admin").p("proxy.tls.enabled")
+    kong_admin = link("kong-admin")
+    if kong_admin.p("proxy.tls.enabled")
         adm_scheme = "https"
-        adm_port = link("kong-admin").p("proxy.tls.bind_port")
+        adm_port = kong_admin.p("proxy.tls.bind_port")
     else
         adm_scheme = "http"
-        adm_port = link("kong-admin").p("proxy.bind_port")
+        adm_port = kong_admin.p("proxy.bind_port")
     end
+    adm_username = kong_admin.p("admin.basic_auth.username")
+    adm_password = kong_admin.p("admin.basic_auth.password")
+    adm_address = kong_admin.p("admin.service.route_hostname", kong_admin.address)
+    adm_path = kong_admin.p("admin.service.route_path")
 
-    if link("kong-proxy").p("proxy.tls.enabled")
+    kong_proxy = link("kong-proxy")
+    if kong_proxy.p("proxy.tls.enabled")
         pxy_scheme = "https"
-        pxy_port = link("kong-proxy").p("proxy.tls.bind_port")
+        pxy_port = kong_proxy.p("proxy.tls.bind_port")
     else
         pxy_scheme = "http"
-        pxy_port = link("kong-proxy").p("proxy.bind_port")
+        pxy_port = kong_proxy.p("proxy.bind_port")
     end
-    pxy_address = link("kong-proxy").address
+    pxy_address = kong_proxy.address
 
     require "securerandom"
     service_uuid = SecureRandom.uuid
@@ -173,7 +174,7 @@ echo $'\n'
 defer cleanup_service
 
 # wait for the Service to be created
-sleep $((<%= sh_esc(link("kong-proxy").p("datastore.db_update_frequency_in_sec")) %> + 1))
+sleep $((<%= sh_esc(kong_proxy.p("datastore.db_update_frequency_in_sec")) %> + 1))
 
 # get the created Service
 admin GET "/services/${SERVICE_UUID_URLENC}" | tr -d '\r'
@@ -199,7 +200,7 @@ echo $'\n'
 defer cleanup_route
 
 # wait for the Route to be created
-sleep $((<%= sh_esc(link("kong-proxy").p("datastore.db_update_frequency_in_sec")) %> + 1))
+sleep $((<%= sh_esc(kong_proxy.p("datastore.db_update_frequency_in_sec")) %> + 1))
 
 # get the created Route
 admin GET "/routes/${ROUTE_UUID_URLENC}" | tr -d '\r'
@@ -262,7 +263,7 @@ else
     echo $'\n'
 
     # wait for the Plugin to be activated
-    sleep $((<%= sh_esc(link("kong-proxy").p("datastore.db_update_frequency_in_sec")) %> + 1))
+    sleep $((<%= sh_esc(kong_proxy.p("datastore.db_update_frequency_in_sec")) %> + 1))
 
     # send a request through the Route and Service
     response=$(proxy GET "/request?toto=titi&tata=tutu" \
