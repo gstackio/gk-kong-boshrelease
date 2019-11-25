@@ -37,6 +37,7 @@
         adm_route_uuid = p("admin.service.route_uuid")
         adm_route_path = p("admin.service.route_path")
 
+        adm_auth_plugin_uuid = p("admin.basic_auth.plugin_uuid")
         adm_consumer_uuid = p("admin.basic_auth.consumer_uuid")
         adm_username = p("admin.basic_auth.username")
         adm_password = p("admin.basic_auth.password")
@@ -61,6 +62,7 @@ readonly ADM_BASE_URI=<%= sh_esc(adm_base_uri) %>
 readonly ADM_SERVICE_UUID_URLENC=<%= sh_esc(uri_esc(adm_service_uuid)) %>
 readonly ADM_ROUTE_UUID_URLENC=<%= sh_esc(uri_esc(adm_route_uuid)) %>
 readonly ADM_CONSUMER_UUID_URLENC=<%= sh_esc(uri_esc(adm_consumer_uuid)) %>
+readonly ADM_AUTH_PLUGIN_UUID_URLENC=<%= sh_esc(uri_esc(adm_auth_plugin_uuid)) %>
 readonly ADM_CONSUMER_NAME_URLENC=<%= sh_esc(uri_esc(adm_username)) %>
 
 set -x
@@ -94,42 +96,30 @@ request PUT "/routes/${ADM_ROUTE_UUID_URLENC}" \
         })) %> \
     --include
 
-plugin_uuid=$(request GET "/plugins" \
+legacy_plugin_uuid=$(request GET "/plugins" \
     | jq --raw-output \
         --arg adm_service_uuid <%= sh_esc(adm_service_uuid) %> \
         '.data[] | select(.name == "basic-auth" and .service.id == $adm_service_uuid) | .id')
 
-if [[ -z ${plugin_uuid} ]]; then
-    # Enable the 'Basic Authentication' plugin on the Admin API Service
-    request POST "/plugins" \
-        --data-raw <%= sh_esc(js_esc({
-                "name"     => "basic-auth",
-                "consumer" => nil,
-                "service"  => { "id" => adm_service_uuid },
-                "route"    => nil,
-                "config"   => {
-                    "hide_credentials" => true,
-                },
-                "run_on"   => "first",
-                "enabled"  => true,
-            })) %> \
-        --include
-else
-    # Update the 'Basic Authentication' plugin on the Admin API Service
-    request PUT "/plugins/${plugin_uuid}" \
-        --data-raw <%= sh_esc(js_esc({
-                "name"     => "basic-auth",
-                "consumer" => nil,
-                "service"  => { "id" => adm_service_uuid },
-                "route"    => nil,
-                "config"   => {
-                    "hide_credentials" => true,
-                },
-                "run_on"   => "first",
-                "enabled"  => true,
-            })) %> \
+if [[ -n ${legacy_plugin_uuid} && ${legacy_plugin_uuid} != <%= sh_esc(adm_auth_plugin_uuid) %> ]]; then
+    request DELETE "/plugins/${legacy_plugin_uuid}" \
         --include
 fi
+
+# Create or update the 'Basic Authentication' plugin on the Admin API Service
+request PUT "/plugins/${ADM_AUTH_PLUGIN_UUID_URLENC}" \
+    --data-raw <%= sh_esc(js_esc({
+            "name"     => "basic-auth",
+            "consumer" => nil,
+            "service"  => { "id" => adm_service_uuid },
+            "route"    => nil,
+            "config"   => {
+                "hide_credentials" => true,
+            },
+            "run_on"   => "first",
+            "enabled"  => true,
+        })) %> \
+    --include
 
 # Create or update the Consumer for the admin API
 request PUT "/consumers/${ADM_CONSUMER_UUID_URLENC}" \

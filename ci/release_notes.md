@@ -1,6 +1,7 @@
 ### Improvements
 
 - Fix potential issue with `post-start` Kong admin API setup, that could break whenever some plugins (other than the one for admin API) were configured in the Kong database.
+- Migrate the Admin A£PI Basic-Auth plugin registration to use a standard, fixed UUID, that can possibly be customized for the very rare cases where it would conflict with some pre-existing database record, just as we do with other Admin API resources that are managed by this BOSH release.
 - Add native support for BOSH DNS health checks using Kong `/status` endpoint (when the Kong admin API is enabled), or a TCP connection check on some Kong proxy port. Now BOSH DNS queries properly return healthy instances.
 - Smoke tests better support the separated control-plane mode, as implemented by the `separate-control-and-data-planes.yml` ops file.
 - Compiled releases are now built on top of the latest stemcell family v621.x

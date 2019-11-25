@@ -154,8 +154,23 @@ properties:
       The UUID used for the Consumer that will hold the basic authentication
       to the Kong admin API.
 
-      The default is usually fine for most implementations.
+      The default is usually fine for most implementations. Customizing is
+      made possible for the very rare cases where teh default UUID would
+      conflict with a pre-existing record in the Kong database. Whenever
+      customized, this UUID must stay the same for the rest of the Kong
+      cluster lifecycle.
     default: 305d4706-c467-47ef-b83b-f778ba1ad4ef
+  admin.basic_auth.plugin_uuid:
+    description: |
+      The UUID used for the BAsic-Auth Plugin that will implement the basic
+      authentication to the Kong admin API.
+
+      The default is usually fine for most implementations. Customizing is
+      made possible for the very rare cases where teh default UUID would
+      conflict with a pre-existing record in the Kong database. Whenever
+      customized, this UUID must stay the same for the rest of the Kong
+      cluster lifecycle.
+    default: 4819743a-f069-40fc-a802-6162db4a758e
 
   # admin.service.hostname:
   #   description: |
@@ -170,13 +185,21 @@ properties:
     description: |
       The UUID used for the Service that will expose the Kong admin API.
 
-      The default is usually fine for most implementations.
+      The default is usually fine for most implementations. Customizing is
+      made possible for the very rare cases where teh default UUID would
+      conflict with a pre-existing record in the Kong database. Whenever
+      customized, this UUID must stay the same for the rest of the Kong
+      cluster lifecycle.
     default: 28edcf4e-ee08-4808-8ab9-c2219fa2a6df
   admin.service.route_uuid:
     description: |
       The UUID used for the Route that will expose the Kong admin API.
 
-      The default is usually fine for most implementations.
+      The default is usually fine for most implementations. Customizing is
+      made possible for the very rare cases where teh default UUID would
+      conflict with a pre-existing record in the Kong database. Whenever
+      customized, this UUID must stay the same for the rest of the Kong
+      cluster lifecycle.
     default: 3afc5416-c09a-47b7-9065-1a0e1400465f
 
 
