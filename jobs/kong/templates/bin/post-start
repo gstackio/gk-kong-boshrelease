@@ -144,23 +144,25 @@ if request GET \
     "/consumers/${ADM_CONSUMER_UUID_URLENC}/basic-auth/${ADM_CONSUMER_NAME_URLENC}" \
     --output /dev/null
 then
-    set +x # don't have the password leak into post-start logs
-    request PATCH \
-        "/consumers/${ADM_CONSUMER_UUID_URLENC}/basic-auth/${ADM_CONSUMER_NAME_URLENC}" \
-        --data-raw <%= sh_esc(js_esc({
-                "password" => adm_password,
-            })) %> \
-        --output /dev/null # don't leak the hashed password into post-start logs
-    set -x
+    (
+        set +x # don't have the password leak into post-start logs
+        request PATCH \
+            "/consumers/${ADM_CONSUMER_UUID_URLENC}/basic-auth/${ADM_CONSUMER_NAME_URLENC}" \
+            --data-raw <%= sh_esc(js_esc({
+                    "password" => adm_password,
+                })) %> \
+            --output /dev/null # don't leak the hashed password into post-start logs
+    )
 else
-    set +x # don't have the password leak into post-start logs
-    request POST "/consumers/${ADM_CONSUMER_UUID_URLENC}/basic-auth" \
-        --data-raw <%= sh_esc(js_esc({
-                "username" => adm_username,
-                "password" => adm_password,
-            })) %> \
-        --output /dev/null # don't leak the hashed password into post-start logs
-    set -x
+    (
+        set +x # don't have the password leak into post-start logs
+        request POST "/consumers/${ADM_CONSUMER_UUID_URLENC}/basic-auth" \
+            --data-raw <%= sh_esc(js_esc({
+                    "username" => adm_username,
+                    "password" => adm_password,
+                })) %> \
+            --output /dev/null # don't leak the hashed password into post-start logs
+    )
 fi
 
 <% end # has_admin_api && spec.bootstrap -%>
