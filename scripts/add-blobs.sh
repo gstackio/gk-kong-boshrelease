@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -e
+set -ueo pipefail
 
 function configure() {
     OPENSSL_VERSION=1.1.1d
