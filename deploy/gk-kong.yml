@@ -48,6 +48,7 @@ instance_groups:
             http_enabled: false
             tls:
               cert: ((kong_tls))
+            injected_headers: []
           admin:
             http_enabled: false
             tls:
