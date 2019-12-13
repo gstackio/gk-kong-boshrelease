@@ -19,6 +19,6 @@
 
 ### Caveats
 
-- For some unknown reason, when setting the `proxy.injected_headers` property to an empty array `[]`, the `Server:` header is still injected by Kong. This might be an issue in the upstream Kong project.
 - The compilation process of this Release requires an access to the Internet. Kong CE dependencies, which are luarocks packages, are downloaded from [loarocks.org](https://luarocks.org). So, your compilation VMs will access the Internet.
 - Smoke tests require an access to the Internet.
+- When setting the `proxy.injected_headers` property to an empty array `[]`, the Kong admin API still returns a `Server:` header. This header is not injected by the proxy, but served by the admin API and then re-transmitted through the proxy.
