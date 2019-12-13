@@ -4,7 +4,7 @@
   type: replace
   value: q-s0.admin-api.service.kong.internal
 
-- path: /addons/name=kong-aliases?/jobs/name=bosh-dns-aliases
+- path: /addons?/name=kong-aliases/jobs/name=bosh-dns-aliases
   type: replace
   value:
     name: bosh-dns-aliases

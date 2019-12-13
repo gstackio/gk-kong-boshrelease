@@ -81,19 +81,6 @@
 
 
 
-# Update the BOSH DNS alias used for the admin API, in order to target the
-# 'kong-control' instance group
-- path: /addons/name=bosh-dns-aliases/jobs/name=bosh-dns-aliases/properties/aliases/domain=_.admin-api.service.kong.internal/targets
-  type: replace
-  value:
-    - deployment: ((deployment_name))
-      domain: bosh
-      instance_group: kong-control
-      network: ((network_name))
-      query: _
-
-
-
 # Add coverage for the BOSH DNS names related to the new 'kong-control'
 # instance group
 - path: /variables/name=kong_tls/options/alternative_names/-
