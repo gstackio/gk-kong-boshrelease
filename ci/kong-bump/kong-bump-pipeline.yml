@@ -12,6 +12,13 @@ resources:
     source:
       repository: kinja/pipeline-image
 
+  - name: gk-automation
+    type: git
+    source:
+      uri: git@github.com:gstackio/gk-automation.git
+      branch: master
+      private_key: ((github_private_key))
+
   - name: kong-gh-release
     type: github-release
     source:
@@ -26,12 +33,10 @@ resources:
     source:
       repository: cloudfoundry/bpm-release
 
-  - name: gk-automation
-    type: git
+  - name: postgres-bosh-io-release
+    type: bosh-io-release
     source:
-      uri: git@github.com:gstackio/gk-automation.git
-      branch: master
-      private_key: ((github_private_key))
+      repository: cloudfoundry/postgres-release
 
   - name: kong-boshrelease-master
     type: git
@@ -308,6 +313,44 @@ jobs:
         file: gk-automation/boshrelease/depl-manifest-release-bump.yml
         params:
           RELEASE_NAME: bpm
+          MANIFEST_PATH: deploy/gk-kong.yml
+
+      - put: bump-info
+        params:
+          file: bump-info/keyval.properties
+
+      - task: git-push
+        image: kinja-image
+        input_mapping:
+          branch-info: bump-info
+          repo: kong-boshrelease-bumped
+        params:
+          GIT_URI: ((kong_release_git_uri))
+          GITHUB_PRIVATE_KEY: ((github_private_key))
+        file: gk-automation/boshrelease/git-push.yml
+
+  - name: detect-postgres
+    serial: true
+    serial_groups: [ detect ]
+    plan:
+      - in_parallel:
+          - get: postgres-bosh-io-release
+            trigger: true
+            params: { tarball: false }
+          - get: kong-boshrelease-master
+          - get: gk-automation
+          - get: kinja-image
+
+      - task: bump-postgres
+        image: kinja-image
+        input_mapping:
+          bosh-io-release: postgres-bosh-io-release
+          repo: kong-boshrelease-master
+        output_mapping:
+          repo-bumped: kong-boshrelease-bumped
+        file: gk-automation/boshrelease/depl-manifest-release-bump.yml
+        params:
+          RELEASE_NAME: postgres
           MANIFEST_PATH: deploy/gk-kong.yml
 
       - put: bump-info
