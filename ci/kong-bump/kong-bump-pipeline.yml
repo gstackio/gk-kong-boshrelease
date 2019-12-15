@@ -52,13 +52,14 @@ jobs:
   - name: detect-kong
     plan:
       - in_parallel:
-        - get: kong-gh-release
-          trigger: true
-          params:
-            globs: []
-            include_source_tarball: true
-        - get: kong-boshrelease-master
-        - get: kinja-image
+          - get: kong-gh-release
+            trigger: true
+            params:
+              globs: []
+              include_source_tarball: true
+          - get: kong-boshrelease-master
+          - get: gk-automation
+          - get: kinja-image
 
       - task: add-blob
         input_mapping:
@@ -195,42 +196,14 @@ jobs:
                 popd > /dev/null
 
       - task: git-push
+        image: kinja-image
         input_mapping:
+          branch-info: bump-info
           repo: kong-boshrelease-blobs-uploaded
         params:
           GIT_URI: ((kong_release_git_uri))
           GITHUB_PRIVATE_KEY: ((github-private-key))
-        image: kinja-image
-        config:
-          platform: linux
-          inputs:
-            - name: bump-info
-            - name: repo
-          params:
-            GIT_URI:
-            GITHUB_PRIVATE_KEY:
-          run:
-            path: /bin/bash
-            args:
-              - -exc
-              - |
-                mkdir -p "${HOME}/.ssh"
-                chmod 700 "${HOME}/.ssh"
-
-                touch "${HOME}/.ssh/id_rsa"
-                chmod 600 "${HOME}/.ssh/id_rsa"
-                cat <<< "${GITHUB_PRIVATE_KEY}" > "${HOME}/.ssh/id_rsa"
-
-                grep -vE "^(UPDATED|UUID)=" "bump-info/keyval.properties" \
-                    | sed -r -e 's/"/\"/g; s/=(.*)$/="\1"/' \
-                    > keyval.inc.bash
-                source "keyval.inc.bash"
-
-                pushd "repo" > /dev/null
-                    git remote set-url origin "${GIT_URI}"
-                    ssh-keyscan -t rsa "github.com" 2> /dev/null >> "${HOME}/.ssh/known_hosts"
-                    git push --set-upstream origin "${branch_name}"
-                popd > /dev/null
+        file: gk-automation/boshrelease/git-push.yml
 
       - task: submit-pr
         params:
