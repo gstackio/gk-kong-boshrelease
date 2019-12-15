@@ -314,6 +314,8 @@ jobs:
         params:
           RELEASE_NAME: bpm
           MANIFEST_PATH: deploy/gk-kong.yml
+          GIT_EMAIL: ((git-commit-email))
+          GIT_NAME: ((git-commit-name))
 
       - put: bump-info
         params:
@@ -352,6 +354,8 @@ jobs:
         params:
           RELEASE_NAME: postgres
           MANIFEST_PATH: deploy/gk-kong.yml
+          GIT_EMAIL: ((git-commit-email))
+          GIT_NAME: ((git-commit-name))
 
       - put: bump-info
         params:
