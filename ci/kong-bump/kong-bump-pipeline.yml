@@ -17,7 +17,7 @@ resources:
     source:
       uri: git@github.com:gstackio/gk-automation.git
       branch: master
-      private_key: ((github_private_key))
+      private_key: ((github-private-key))
 
   - name: kong-gh-release
     type: github-release
@@ -26,7 +26,7 @@ resources:
       repository: kong
       pre_release: false
       tag_filter: (1\.0\.\d+)
-      access_token: ((github_access_token))
+      access_token: ((github-access-token))
 
   - name: bpm-bosh-io-release
     type: bosh-io-release
@@ -43,7 +43,7 @@ resources:
     source:
       uri: ((kong_release_git_uri))
       branch: master
-      private_key: ((github_private_key))
+      private_key: ((github-private-key))
 
   - name: bump-info
     type: keyval
@@ -130,8 +130,8 @@ jobs:
                     git status
                     git diff | cat
 
-                    git config --global "user.name" "((git_user_name))"
-                    git config --global "user.email" "((git_user_email))"
+                    git config --global "user.name" "((git-commit-name))"
+                    git config --global "user.email" "((git-commit-email))"
 
                     if [[ -z "$(git status --porcelain)" ]]; then
                         echo "INFO: nothing to commit. Skipping."
@@ -154,8 +154,8 @@ jobs:
 
       - task: upload-blobs
         params:
-          S3_ACCESS_KEY_ID: ((s3_access_key_id))
-          S3_SECRET_ACCESS_KEY: ((s3_secret_access_key))
+          S3_ACCESS_KEY_ID: ((aws-access-key))
+          S3_SECRET_ACCESS_KEY: ((aws-secret-key))
         image: kinja-image
         config:
           platform: linux
@@ -187,8 +187,8 @@ jobs:
                 pushd "kong-boshrelease-blobs-uploaded" > /dev/null
                     bosh upload-blobs
 
-                    git config --global "user.name" "((git_user_name))"
-                    git config --global "user.email" "((git_user_email))"
+                    git config --global "user.name" "((git-commit-name))"
+                    git config --global "user.email" "((git-commit-email))"
 
                     git add "config/blobs.yml"
                     git commit -m "Uploaded blob for new Kong source code"
@@ -199,7 +199,7 @@ jobs:
           repo: kong-boshrelease-blobs-uploaded
         params:
           GIT_URI: ((kong_release_git_uri))
-          GITHUB_PRIVATE_KEY: ((github_private_key))
+          GITHUB_PRIVATE_KEY: ((github-private-key))
         image: kinja-image
         config:
           platform: linux
@@ -234,7 +234,7 @@ jobs:
 
       - task: submit-pr
         params:
-          GH_ACCESS_TOKEN: ((github_access_token))
+          GH_ACCESS_TOKEN: ((github-access-token))
           GH_OWNER: gstackio
           GH_REPO: gk-kong-boshrelease
         image: kinja-image
@@ -326,7 +326,7 @@ jobs:
           repo: kong-boshrelease-bumped
         params:
           GIT_URI: ((kong_release_git_uri))
-          GITHUB_PRIVATE_KEY: ((github_private_key))
+          GITHUB_PRIVATE_KEY: ((github-private-key))
         file: gk-automation/boshrelease/git-push.yml
 
   - name: detect-postgres
@@ -364,5 +364,5 @@ jobs:
           repo: kong-boshrelease-bumped
         params:
           GIT_URI: ((kong_release_git_uri))
-          GITHUB_PRIVATE_KEY: ((github_private_key))
+          GITHUB_PRIVATE_KEY: ((github-private-key))
         file: gk-automation/boshrelease/git-push.yml

@@ -8,10 +8,10 @@ pushd "${SCRIPT_DIR}" > /dev/null
 
 (
     set -x
-    fly -t "gk" \
-        set-pipeline -p "kong-bump" \
-        -c "kong-bump-pipeline.yml" \
-        -l "../config.yml" -l "../secrets.yml"
+    fly --target="gk" \
+        set-pipeline --pipeline="kong-bump" \
+        --config="kong-bump-pipeline.yml" \
+        --load-vars-from="../config.yml"
 )
 
 popd > /dev/null
