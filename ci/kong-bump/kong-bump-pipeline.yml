@@ -21,6 +21,18 @@ resources:
       tag_filter: (1\.0\.\d+)
       access_token: ((github_access_token))
 
+  - name: bpm-bosh-io-release
+    type: bosh-io-release
+    source:
+      repository: cloudfoundry/bpm-release
+
+  - name: gk-automation
+    type: git
+    source:
+      uri: git@github.com:gstackio/gk-automation.git
+      branch: master
+      private_key: ((github_private_key))
+
   - name: kong-boshrelease-master
     type: git
     source:
@@ -273,3 +285,41 @@ jobs:
                     --url "https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/pulls" \
                     --data-raw "${pr_data}"
                 exit 0
+
+  - name: detect-bpm
+    serial: true
+    serial_groups: [ detect ]
+    plan:
+      - in_parallel:
+          - get: bpm-bosh-io-release
+            trigger: true
+            params: { tarball: false }
+          - get: kong-boshrelease-master
+          - get: gk-automation
+          - get: kinja-image
+
+      - task: bump-bpm
+        image: kinja-image
+        input_mapping:
+          bosh-io-release: bpm-bosh-io-release
+          repo: kong-boshrelease-master
+        output_mapping:
+          repo-bumped: kong-boshrelease-bumped
+        file: gk-automation/boshrelease/depl-manifest-release-bump.yml
+        params:
+          RELEASE_NAME: bpm
+          MANIFEST_PATH: deploy/gk-kong.yml
+
+      - put: bump-info
+        params:
+          file: bump-info/keyval.properties
+
+      - task: git-push
+        image: kinja-image
+        input_mapping:
+          branch-info: bump-info
+          repo: kong-boshrelease-bumped
+        params:
+          GIT_URI: ((kong_release_git_uri))
+          GITHUB_PRIVATE_KEY: ((github_private_key))
+        file: gk-automation/boshrelease/git-push.yml
