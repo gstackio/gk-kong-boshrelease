@@ -75,7 +75,7 @@
 
 
 # The Konga UI has to target the 'kong-control' instance group
-- path: /instance_groups/name=ui/jobs/name=konga/consumes?/kong
+- path: /instance_groups/name=ui/jobs/name=konga/consumes?/kong-admin
   type: replace
   value: { from: *kong_admin_link }
 
