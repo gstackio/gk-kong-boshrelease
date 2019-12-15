@@ -82,12 +82,22 @@ jobs:
 
                     bosh blobs
 
-                    kong_old_blob_path=$(bosh blobs | awk '/kong\/kong-[0-9.]+\.tar\.gz/{print $1}')
+                    old_kong_sha256=$(
+                        bosh blobs --column path --column digest \
+                        | awk '/kong\/kong-[0-9.]+\.tar\.gz/{sub("^sha256:", "", $2); print $2}')
+                    new_kong_sha256=$(
+                        shasum -a 256 "../kong-gh-release/source.tar.gz" \
+                        | awk '{print $1}')
+                    if [[ ${new_kong_sha256} == ${old_kong_sha256} ]]; then
+                        echo "INFO: new blob has the same sha256 hash as the old one. Skipping blob update."
+                    else
+                        kong_old_blob_path=$(bosh blobs | awk '/kong\/kong-[0-9.]+\.tar\.gz/{print $1}')
 
-                    bosh remove-blob "${kong_old_blob_path}"
-                    bosh add-blob "../kong-gh-release/source.tar.gz" "kong/kong-${latest_kong_version}.tar.gz"
+                        bosh remove-blob "${kong_old_blob_path}"
+                        bosh add-blob "../kong-gh-release/source.tar.gz" "kong/kong-${latest_kong_version}.tar.gz"
 
-                    bosh blobs
+                        bosh blobs
+                    fi
 
                     echo "Updating 'packages/kong/packaging' file."
                     sed -i -re "/KONG_VERSION=/s/=[0-9.]+\$/=${latest_kong_version}/" "packages/kong/packaging"
@@ -106,8 +116,12 @@ jobs:
                     git config --global "user.name" "((git_user_name))"
                     git config --global "user.email" "((git_user_email))"
 
-                    git add .
-                    git commit -m "Bump Kong binary to version ${latest_kong_version}"
+                    if [[ -z "$(git status --porcelain)" ]]; then
+                        echo "INFO: nothing to commit. Skipping."
+                    else
+                        git add .
+                        git commit -m "Bump Kong binary to version ${latest_kong_version}"
+                    fi
                 popd > /dev/null
 
 
