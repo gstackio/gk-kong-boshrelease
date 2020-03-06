@@ -96,7 +96,9 @@ jobs:
                     git checkout "master"
                     git pull
 
-                    git checkout -b "${branch_name}"
+                    if [[ ${branch_name} != "master" ]]; then
+                        git checkout -b "${branch_name}"
+                    fi
 
                     bosh blobs
 
