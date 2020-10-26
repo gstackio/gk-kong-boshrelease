@@ -5,7 +5,7 @@ resource_types:
     type: docker-image
     source:
       repository: swce/keyval-resource
- 
+
 resources:
   - name: kinja-image
     type: docker-image
