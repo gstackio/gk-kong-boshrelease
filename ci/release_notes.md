@@ -6,7 +6,9 @@
 - Add native support for BOSH DNS health checks using Kong `/status` endpoint (when the Kong admin API is enabled), or a TCP connection check on some Kong proxy port. Now BOSH DNS queries properly return healthy instances.
 - Smoke tests better support the separated control-plane mode, as implemented by the `separate-control-and-data-planes.yml` ops file.
 - Compiled releases are now built on top of the latest stemcell family v621.x
-- Bumped BPM to v1.1.6 in the standard deployment manifest.
+- Created bump automation with a dedicated Concourse pipeline, for using latest BPM and Postgres in the standard deployment manifest.
+- Bumped BPM to v1.1.9 in the standard deployment manifest.
+- Bumped the Postgres release to v42 in standard deployment manifest.
 
 
 ### Breaking changes
