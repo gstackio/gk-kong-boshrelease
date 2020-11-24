@@ -6,8 +6,8 @@ RELEASE_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 
 pushd "${RELEASE_DIR}" > /dev/null
 
-team="gk-plat-devs"
-pipeline="gk-kong-boshrelease"
+team="$(    bosh int ci/settings.yml --path /meta/team)"
+pipeline="$(bosh int ci/settings.yml --path /meta/name)-boshrelease"
 
 credhub set -n "/concourse/${team}/git-commit-email"    -t value -v "$(bosh int ci/secrets.yml     --path /git_user_email)"
 credhub set -n "/concourse/${team}/git-commit-name"     -t value -v "$(bosh int ci/config.yml      --path /git_user_name)"
