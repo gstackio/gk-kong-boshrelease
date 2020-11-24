@@ -8,7 +8,7 @@ pushd "${SCRIPT_DIR}" > /dev/null
 
 (
     set -x
-    fly --target="gk" \
+    fly --target="gk-plat-devs" \
         set-pipeline --pipeline="kong-bump" \
         --config="kong-bump-pipeline.yml" \
         --load-vars-from="../config.yml"
