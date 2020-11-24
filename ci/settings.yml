@@ -35,6 +35,9 @@ meta:
     email:  ((git-commit-email))
     name:   ((git-commit-name))
 
+  image:
+    name: gstack/gk-ops
+
   aws:
     bucket:      (( grab meta.pipeline ))
     region_name: eu-west-3
