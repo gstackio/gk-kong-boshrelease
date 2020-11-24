@@ -7,10 +7,10 @@ resource_types:
       repository: swce/keyval-resource
 
 resources:
-  - name: kinja-image
+  - name: gk-ops-image
     type: docker-image
     source:
-      repository: kinja/pipeline-image
+      repository: gstack/gk-ops
 
   - name: gk-automation
     type: git
@@ -59,12 +59,12 @@ jobs:
               include_source_tarball: true
           - get: kong-boshrelease-master
           - get: gk-automation
-          - get: kinja-image
+          - get: gk-ops-image
 
       - task: add-blob
         input_mapping:
           kong-boshrelease: kong-boshrelease-master
-        image: kinja-image
+        image: gk-ops-image
         config:
           platform: linux
           inputs:
@@ -159,7 +159,7 @@ jobs:
         params:
           S3_ACCESS_KEY_ID: ((aws-access-key))
           S3_SECRET_ACCESS_KEY: ((aws-secret-key))
-        image: kinja-image
+        image: gk-ops-image
         config:
           platform: linux
           inputs:
@@ -198,7 +198,7 @@ jobs:
                 popd > /dev/null
 
       - task: git-push
-        image: kinja-image
+        image: gk-ops-image
         input_mapping:
           branch-info: bump-info
           repo: kong-boshrelease-blobs-uploaded
@@ -212,7 +212,7 @@ jobs:
           GH_ACCESS_TOKEN: ((github-access-token))
           GH_OWNER: gstackio
           GH_REPO: gk-kong-boshrelease
-        image: kinja-image
+        image: gk-ops-image
         config:
           platform: linux
           inputs:
@@ -276,10 +276,10 @@ jobs:
             params: { tarball: false }
           - get: kong-boshrelease-master
           - get: gk-automation
-          - get: kinja-image
+          - get: gk-ops-image
 
       - task: bump-bpm
-        image: kinja-image
+        image: gk-ops-image
         input_mapping:
           bosh-io-release: bpm-bosh-io-release
           repo: kong-boshrelease-master
@@ -297,7 +297,7 @@ jobs:
           file: bump-info/keyval.properties
 
       - task: git-push
-        image: kinja-image
+        image: gk-ops-image
         input_mapping:
           branch-info: bump-info
           repo: kong-boshrelease-bumped
@@ -316,10 +316,10 @@ jobs:
             params: { tarball: false }
           - get: kong-boshrelease-master
           - get: gk-automation
-          - get: kinja-image
+          - get: gk-ops-image
 
       - task: bump-postgres
-        image: kinja-image
+        image: gk-ops-image
         input_mapping:
           bosh-io-release: postgres-bosh-io-release
           repo: kong-boshrelease-master
@@ -337,7 +337,7 @@ jobs:
           file: bump-info/keyval.properties
 
       - task: git-push
-        image: kinja-image
+        image: gk-ops-image
         input_mapping:
           branch-info: bump-info
           repo: kong-boshrelease-bumped
