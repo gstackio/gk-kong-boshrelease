@@ -9,6 +9,7 @@
 - Created bump automation with a dedicated Concourse pipeline, for using latest BPM and Postgres in the standard deployment manifest.
 - Bumped BPM to v1.1.9 in the standard deployment manifest.
 - Bumped the Postgres release to v42 in standard deployment manifest.
+- Use new BOSH DNS feature to feed the BOSH DNS alias for Kong into the generated TLS certificate alternative names.
 
 
 ### Breaking changes

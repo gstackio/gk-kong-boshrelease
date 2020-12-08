@@ -1,6 +1,15 @@
 ---
 name: ((deployment_name))
 
+# NOTE: this deployment requires the BOSH DNS add-on to be collocated by some
+# runtime-config to be setup on the BOSH Director.
+#
+# See:
+#   - https://bosh.io/docs/dns/#dns-release
+#   - https://github.com/cloudfoundry/bosh-deployment/blob/master/runtime-configs/dns.yml
+features:
+  use_dns_addresses: true
+
 instance_groups:
   - name: db
     instances: 1
@@ -111,6 +120,8 @@ variables:
         - "*.kong.((network_name)).((deployment_name)).bosh"
         - "127.0.0.1"
         - "*.ui.((network_name)).((deployment_name)).bosh"
+    consumes:
+      alternative_name: { from: kong }
     update_mode: converge
   - name: konga_db_password
     type: password
@@ -118,9 +129,6 @@ variables:
     type: password
   - name: konga_admin_password
     type: password
-
-features:
-  use_dns_addresses: true
 
 stemcells:
   - alias: default

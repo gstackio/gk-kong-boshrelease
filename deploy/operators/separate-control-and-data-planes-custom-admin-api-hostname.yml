@@ -5,8 +5,8 @@
 - path: /addons/name=bosh-dns-aliases/jobs/name=bosh-dns-aliases/properties/aliases/domain=_.admin-api.service.kong.internal/targets
   type: replace
   value:
-    - deployment: ((deployment_name))
-      domain: bosh
+    - query: _
       instance_group: kong-control
       network: ((network_name))
-      query: _
+      deployment: ((deployment_name))
+      domain: bosh
