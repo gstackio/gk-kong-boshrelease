@@ -38,6 +38,11 @@ resources:
     source:
       repository: cloudfoundry/postgres-release
 
+  - name: os-conf-bosh-io-release
+    type: bosh-io-release
+    source:
+      repository: cloudfoundry/os-conf-release
+
   - name: kong-boshrelease-master
     type: git
     source:
@@ -328,6 +333,46 @@ jobs:
         file: gk-automation/boshrelease/depl-manifest-release-bump.yml
         params:
           RELEASE_NAME: postgres
+          MANIFEST_PATH: deploy/gk-kong.yml
+          GIT_EMAIL: ((git-commit-email))
+          GIT_NAME: ((git-commit-name))
+
+      - put: bump-info
+        params:
+          file: bump-info/keyval.properties
+
+      - task: git-push
+        image: gk-ops-image
+        input_mapping:
+          branch-info: bump-info
+          repo: kong-boshrelease-bumped
+        params:
+          GIT_URI: ((kong_release_git_uri))
+          GITHUB_PRIVATE_KEY: ((github-private-key))
+        file: gk-automation/boshrelease/git-push.yml
+
+  - name: detect-os-conf
+    serial: true
+    serial_groups: [ detect ]
+    plan:
+      - in_parallel:
+          - get: os-conf-bosh-io-release
+            trigger: true
+            params: { tarball: false }
+          - get: kong-boshrelease-master
+          - get: gk-automation
+          - get: gk-ops-image
+
+      - task: bump-os-conf
+        image: gk-ops-image
+        input_mapping:
+          bosh-io-release: os-conf-bosh-io-release
+          repo: kong-boshrelease-master
+        output_mapping:
+          repo-bumped: kong-boshrelease-bumped
+        file: gk-automation/boshrelease/depl-manifest-release-bump.yml
+        params:
+          RELEASE_NAME: os-conf
           MANIFEST_PATH: deploy/gk-kong.yml
           GIT_EMAIL: ((git-commit-email))
           GIT_NAME: ((git-commit-name))
