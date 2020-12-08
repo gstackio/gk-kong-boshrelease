@@ -159,6 +159,6 @@ releases:
   url: https://bosh.io/d/github.com/cloudfoundry/postgres-release?v=43
   version: "43"
 - name: os-conf
-  sha1: 7579a96515b265c6d828924bf4f5fae115798199
-  url: https://bosh.io/d/github.com/cloudfoundry/os-conf-release?v=21.0.0
-  version: 21.0.0
+  sha1: 7ef05f6f3ebc03f59ad8131851dbd1abd1ab3663
+  url: https://bosh.io/d/github.com/cloudfoundry/os-conf-release?v=22.1.0
+  version: 22.1.0
