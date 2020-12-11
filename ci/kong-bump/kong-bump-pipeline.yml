@@ -5,12 +5,16 @@ resource_types:
     type: docker-image
     source:
       repository: swce/keyval-resource
+      username: ((dockerhub-username))
+      password: ((dockerhub-password))
 
 resources:
   - name: gk-ops-image
     type: docker-image
     source:
       repository: gstack/gk-ops
+      username: ((dockerhub-username))
+      password: ((dockerhub-password))
 
   - name: gk-automation
     type: git

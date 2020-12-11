@@ -21,10 +21,15 @@ credhub set -n "/concourse/${team}/${pipeline}/slack-webhook" -t value -v "$(bos
 credhub set -n "/concourse/${team}/github-access-token" -t value -v "$(bosh int ci/secrets.yml --path /github_access_token)"
 credhub set -n "/concourse/${team}/github-private-key"  -t value -v "$(bosh int ci/secrets.yml --path /github_private_key)"
 
-credhub set -n "/concourse/${team}/bosh-lite-environment"   -t value -v "$(bosh int ci/secrets.yml --path /bosh-lite-environment)"
-credhub set -n "/concourse/${team}/bosh-lite-ca-cert"       -t value -v "$(bosh int ci/secrets.yml --path /bosh-lite-ca-cert)"
-credhub set -n "/concourse/${team}/bosh-lite-client"        -t value -v "$(bosh int ci/secrets.yml --path /bosh-lite-client)"
-credhub set -n "/concourse/${team}/bosh-lite-client-secret" -t value -v "$(bosh int ci/secrets.yml --path /bosh-lite-client-secret)"
+credhub set -n "/concourse/${team}/bosh-lite-environment"   -t value -v "$(bosh int ci/secrets.yml --path /bosh_lite_environment)"
+credhub set -n "/concourse/${team}/bosh-lite-ca-cert"       -t value -v "$(bosh int ci/secrets.yml --path /bosh_lite_ca_cert)"
+credhub set -n "/concourse/${team}/bosh-lite-client"        -t value -v "$(bosh int ci/secrets.yml --path /bosh_lite_client)"
+credhub set -n "/concourse/${team}/bosh-lite-client-secret" -t value -v "$(bosh int ci/secrets.yml --path /bosh_lite_client_secret)"
+
+credhub set -n "/concourse/${team}/dockerhub-username"        -t value -v "$(bosh int ci/config.yml  --path /dockerhub_username)"
+credhub set -n "/concourse/${team}/dockerhub-password"        -t value -v "$(bosh int ci/secrets.yml --path /dockerhub_password)"
+# credhub set -n "/concourse/${team}/docker-registry-username"  -t value -v "$(bosh int ci/config.yml --path /docker_registry_username)"
+# credhub set -n "/concourse/${team}/docker-registry-password"  -t value -v "$(bosh int ci/secrets.yml --path /docker_registry_password)"
 
 # To delete all:
 #

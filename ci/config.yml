@@ -4,3 +4,6 @@ github_username: gk-concourse-ninja
 git_user_name: Gstack Concourse Ninja
 
 kong_release_git_uri: git@github.com:gstackio/gk-kong-boshrelease.git
+
+dockerhub_username: gkconcourseninja
+# docker_registry_username: admin
