@@ -26,10 +26,8 @@ credhub set -n "/concourse/${team}/bosh-lite-ca-cert"       -t value -v "$(bosh 
 credhub set -n "/concourse/${team}/bosh-lite-client"        -t value -v "$(bosh int ci/secrets.yml --path /bosh_lite_client)"
 credhub set -n "/concourse/${team}/bosh-lite-client-secret" -t value -v "$(bosh int ci/secrets.yml --path /bosh_lite_client_secret)"
 
-credhub set -n "/concourse/${team}/dockerhub-username"        -t value -v "$(bosh int ci/config.yml  --path /dockerhub_username)"
-credhub set -n "/concourse/${team}/dockerhub-password"        -t value -v "$(bosh int ci/secrets.yml --path /dockerhub_password)"
-# credhub set -n "/concourse/${team}/docker-registry-username"  -t value -v "$(bosh int ci/config.yml --path /docker_registry_username)"
-# credhub set -n "/concourse/${team}/docker-registry-password"  -t value -v "$(bosh int ci/secrets.yml --path /docker_registry_password)"
+credhub set -n "/concourse/${team}/docker-registry-username"  -t value -v "$(bosh int ci/config.yml  --path /docker_registry_username)"
+credhub set -n "/concourse/${team}/docker-registry-password"  -t value -v "$(bosh int ci/secrets.yml --path /docker_registry_password)"
 
 # To delete all:
 #

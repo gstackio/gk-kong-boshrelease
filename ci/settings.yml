@@ -37,12 +37,10 @@ meta:
     name:   ((git-commit-name))
 
   image:
-    name: gstack/gk-ops
+    name: harbor.ci.gstack.io/gstack/gk-ops
     registry:
-      username: ((dockerhub-username))
-      password: ((dockerhub-password))
-      # username: ((docker_registry_username))
-      # password: ((docker-registry-password))
+      username: ((docker-registry-username))
+      password: ((docker-registry-password))
 
   aws:
     bucket:      (( grab meta.pipeline ))
