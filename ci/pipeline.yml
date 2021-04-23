@@ -64,7 +64,7 @@ meta:
     webhook:       (( param "Please specify your Slack Incoming Webhook Integration URL" ))
     success_moji:  ":airplane_departure:"
     fail_moji:     ":airplane_arriving:"
-    upset_moji:    ":sad_panda:"
+    upset_moji:    ":sadpanda:"
     channel:       (( param "Please specify the channel (#name) or user (@user) to send messages to" ))
     username:      concourse
     icon:          https://cl.ly/2F421Y300u07/concourse-logo-blue-transparent.png
@@ -93,12 +93,10 @@ jobs:
     public: true
     serial: true
     plan:
-    - name: main
-      do:
+    - do:
       - { get: git, trigger: true }
       - { get: image }
-      - name: testflight
-        task: testflight
+      - task: testflight
         image: image
         config:
           platform: linux
@@ -132,17 +130,14 @@ jobs:
     public: true
     serial: true
     plan:
-    - name: main
-      do:
+    - do:
       - { get: git-pull-requests, trigger: true, version: every }
       - { get: image }
-      - name: pending-status
-        put: git-pull-requests
+      - put: git-pull-requests
         params:
           path: git-pull-requests
           status: pending
-      - name: testflight
-        task: testflight
+      - task: testflight
         image: image
         config:
           platform: linux
@@ -174,8 +169,7 @@ jobs:
           params:
             path: git-pull-requests
             status: failure
-      - name: pr-success-message
-        task: pr-success-message
+      - task: pr-success-message
         image: image
         config:
           platform: linux
@@ -340,8 +334,7 @@ jobs:
       - { get: version, passed: [rc], params: {bump: final} }
       - { get: git,     passed: [rc] }
       - { get: image,   passed: [rc] }
-      - name: release
-        task: release
+      - task: release
         image: image
         config:
           platform: linux
@@ -369,28 +362,23 @@ jobs:
             AWS_SECRET_KEY:       (( grab meta.aws.secret_key ))
             MANIFESTS_DIR: (( grab meta.manifest.directory ))
 
-      - name: upload-git
-        put: git
+      - put: git
         params:
           rebase: true
           repository: pushme
-      - name: tarball
-        put: s3-tarball
+      - put: s3-tarball
         params:
           file:  (( concat "gh/artifacts/" meta.name "-*.tgz" ))
-      - name: github-release
-        put: github
+      - put: github
         params:
           name:   gh/name
           tag:    gh/tag
           body:   gh/notes.md
           globs: [gh/artifacts/*]
-      - name: version-bump
-        put: version
+      - put: version
         params:
           bump: patch
-      - name: notify
-        put: notify
+      - put: notify
         params:
           channel:  (( grab meta.slack.channel ))
           username: (( grab meta.slack.username ))
@@ -440,8 +428,7 @@ jobs:
 
   - name: use-compiled-releases
     plan:
-      - name: resources
-        in_parallel:
+      - in_parallel:
           steps:
             - get: git
             - get: github
@@ -476,8 +463,7 @@ jobs:
             BRANCH:        (( grab meta.github.branch ))
             STEMCELL_OS:   (( grab meta.bosh.stemcell.os ))
             MANIFESTS_DIR: (( grab meta.manifest.directory ))
-      - name: upload-git
-        put: git
+      - put: git
         params:
           rebase: true
           repository: pushme
@@ -520,7 +506,7 @@ resources:
 
   - name: version
     type: semver
-    source :
+    source:
       driver:            s3
       bucket:            (( grab meta.aws.bucket ))
       region_name:       (( grab meta.aws.region_name ))

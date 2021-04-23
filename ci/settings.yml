@@ -72,8 +72,8 @@ meta:
 jobs:
   - name: testflight
     plan:
-    - name: main
-      do:
+    - (( inline ))
+    - do:
       - (( append ))
 
       - name: testflight-no-tls
