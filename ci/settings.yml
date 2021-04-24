@@ -76,8 +76,7 @@ jobs:
     - do:
       - (( append ))
 
-      - name: testflight-no-tls
-        task: testflight
+      - task: testflight
         image: image
         config:
           platform: linux
@@ -100,8 +99,7 @@ jobs:
             MANIFEST_VARS:        (( grab meta.manifest.vars-no-tls ))
             MANIFEST_OP_PATHS:    (( grab meta.manifest.operator_file_paths-no-tls))
 
-      - name: testflight-separate
-        task: testflight
+      - task: testflight
         image: image
         config:
           platform: linux
