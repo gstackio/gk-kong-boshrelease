@@ -70,6 +70,7 @@ jobs:
           artifact-version: kong-gh-release
           repo:             kong-boshrelease-master
         params:
+          BASE_BRANCH:          master
           BRANCH_NAME_TEMPLATE: bump-kong-${artifact_version}
           GITHUB_PRIVATE_KEY:   ((github-private-key))
 
@@ -134,6 +135,8 @@ jobs:
       - task: submit-pr
         image: gk-ops-image
         file: gk-automation/tasks/github/submit-pr.yml
+        input_mapping:
+          repo: repo-pushed
         params:
           GH_ACCESS_TOKEN: ((github-access-token))
           GH_OWNER:        gstackio
