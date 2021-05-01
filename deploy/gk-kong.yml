@@ -144,11 +144,11 @@ update:
 
 releases:
 - name: gk-kong
-  sha1: 5a02dbebe3e35cc1df5d94b1a2fa7018641be335
+  sha1: 2f6c080c0f713e8a4bb82a589eb9d26b0a3137d9
   stemcell:
-    os: ubuntu-xenial
-    version: "456.69"
-  url: https://github.com/gstackio/gk-kong-boshrelease/releases/download/v2.1.0/gk-kong-2.1.0.tgz
+    os: ubuntu-bionic
+    version: "0.28"
+  url: https://s3.eu-west-3.amazonaws.com/gk-kong-boshrelease/compiled-releases/gk-kong/gk-kong-2.1.0-ubuntu-bionic-0.28-20210501-084609-019339587-20210501084612.tgz
   version: 2.1.0
 - name: bpm
   sha1: dcf0582d838a73de29da273552ae79ac3098ee8b
