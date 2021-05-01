@@ -1,0 +1,85 @@
+name: gk-kong
+version: 2.1.0
+commit_hash: 88eb35a
+uncommitted_changes: false
+jobs:
+- name: kong
+  version: 6598f7375e648ef0b1c74821b8f501fe238aa27726e4968d0751e3a52143aa35
+  fingerprint: 6598f7375e648ef0b1c74821b8f501fe238aa27726e4968d0751e3a52143aa35
+  sha1: sha256:b1c2c545e2222313dfa3a2706b64d6d2f4fd75702a69dc6a2f3baec1957cdc1d
+  packages:
+  - kong
+  - luarocks
+  - openresty
+  - openssl
+  - jq-1.6-linux
+- name: kong-redirect-plugin
+  version: 214197e768f39a4c633ef7e7b503386c69f58a106ad8eb99ee0740920e5e4689
+  fingerprint: 214197e768f39a4c633ef7e7b503386c69f58a106ad8eb99ee0740920e5e4689
+  sha1: sha256:13a53e48ba4ff54e98061e556cc640dc420606967cb1a87740c07f50d8789c32
+  packages:
+  - kong-redirect-plugin
+- name: konga
+  version: 58f7d1210439e6e5c59ea59fbe8a5f41a0535896e7b7a12f5abafd98537dafdb
+  fingerprint: 58f7d1210439e6e5c59ea59fbe8a5f41a0535896e7b7a12f5abafd98537dafdb
+  sha1: sha256:e7c0872311aae0de47576f7ade590b7d7c4a3985a7f679bd92cd32bebb106596
+  packages:
+  - nodejs
+  - konga
+- name: smoke-tests
+  version: 11184940f9b3062316e0b9bc9ea679c485bfe726e7cfb37752693f1903a0ca50
+  fingerprint: 11184940f9b3062316e0b9bc9ea679c485bfe726e7cfb37752693f1903a0ca50
+  sha1: sha256:77741d6f36a0cd03fca3a3b46c86eba640fc37fdabb58f82d3b4d0f7e6f8e06c
+  packages:
+  - jq-1.6-linux
+packages:
+- name: jq-1.6-linux
+  version: 0091c5396ef5583a7d815ff3cad70deb5adb859a8f9c394ae515566ea53d0f8c
+  fingerprint: 0091c5396ef5583a7d815ff3cad70deb5adb859a8f9c394ae515566ea53d0f8c
+  sha1: sha256:783085ad045a4a9ac51cfa93bb308e72975dd786b78d6fd37321aa86d90d426a
+  dependencies: []
+- name: kong
+  version: 133be2ccc5597930932e99781a953de7cafc00c9c96e89f599a2c6e549412b37
+  fingerprint: 133be2ccc5597930932e99781a953de7cafc00c9c96e89f599a2c6e549412b37
+  sha1: sha256:1222e3e32fe5cd5e289cf5a75a8e3282ae11ba045c548f3ce0195691b9dc0103
+  dependencies:
+  - luarocks
+  - openresty
+  - openssl
+- name: kong-redirect-plugin
+  version: 0629c26eb5190b51997f01a3d73e5211bfdd3247950225788aee547d2b2af3c6
+  fingerprint: 0629c26eb5190b51997f01a3d73e5211bfdd3247950225788aee547d2b2af3c6
+  sha1: sha256:a29bd0a4da4d3d75d9b6e31015363812754c404f7b430528dacce258edaf0dbb
+  dependencies: []
+- name: konga
+  version: fd800467c167141f67de39388c035dad60983e0c684f80b6aebcaeeaa6dbb9b0
+  fingerprint: fd800467c167141f67de39388c035dad60983e0c684f80b6aebcaeeaa6dbb9b0
+  sha1: sha256:7360bb1b54e135c651f5eb8a0a97b4264fd0fcd1d2e640e4d265fb3102d498ce
+  dependencies:
+  - nodejs
+- name: luarocks
+  version: a8463472f15f216f3c22afff489d236ea7b6af3129dfa725dc70b09e4d39e1f3
+  fingerprint: a8463472f15f216f3c22afff489d236ea7b6af3129dfa725dc70b09e4d39e1f3
+  sha1: sha256:942ebe14367e3b4e63cdcaacf96aa93c7345a2678495a1faa73b11816cba11ae
+  dependencies:
+  - openresty
+- name: nodejs
+  version: 36b6586a99661236ef720642596bd15f54e92ca71471c1dbfeac5871822e56c5
+  fingerprint: 36b6586a99661236ef720642596bd15f54e92ca71471c1dbfeac5871822e56c5
+  sha1: sha256:79f7f3f5a30b3a9e4102faea26f7bf2815a57fcd6e5270fe3bd5605fe9a01882
+  dependencies: []
+- name: openresty
+  version: c1187375bce8797cdf3bfc6a0b9687b2fcae0d575c940d31beb6df3575aaf176
+  fingerprint: c1187375bce8797cdf3bfc6a0b9687b2fcae0d575c940d31beb6df3575aaf176
+  sha1: sha256:24b185a63e2e2aa9c7bf4e9a567280c44b4b309be36e3df67142c91dcc0573f4
+  dependencies:
+  - openssl
+- name: openssl
+  version: d10bba80dbfe8b0457ddbe8b2dc4f196c730335e3616747fe2fad0c2475a0143
+  fingerprint: d10bba80dbfe8b0457ddbe8b2dc4f196c730335e3616747fe2fad0c2475a0143
+  sha1: sha256:fc0bf8241038a93d341e743e380adc4867416134cf5d0642bdfef5a6fdb81956
+  dependencies: []
+license:
+  version: fa8c76e69c0d7a45f68807e8d5381bde68b3751ce779c6ecc1856045ecb1805a
+  fingerprint: fa8c76e69c0d7a45f68807e8d5381bde68b3751ce779c6ecc1856045ecb1805a
+  sha1: sha256:f3cf28973c0cddea256909bdcce05f6a0e64358ef3c1b68f32540117c6a0c367
