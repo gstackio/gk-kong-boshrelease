@@ -123,3 +123,13 @@ jobs:
             MANIFEST_PATH:        (( grab meta.manifest.path ))
             MANIFEST_VARS:        (( grab meta.manifest.vars-separate ))
             MANIFEST_OP_PATHS:    (( grab meta.manifest.operator_file_paths-separate))
+
+resources:
+
+  - name: git
+    check_every: 24h
+    webhook_token: ((concourse-webhook-token))
+
+  - name: git-pull-requests
+    check_every: 24h
+    webhook_token: ((concourse-webhook-token))
