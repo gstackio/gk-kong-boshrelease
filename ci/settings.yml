@@ -58,9 +58,7 @@ meta:
 
   bosh:
     stemcell:
-      major: 0
       cpi: "warden-boshlite"
-      os: ubuntu-bionic
     deployment-no-tls:   (( concat meta.name "-testflight-no-tls" ))
     deployment-separate: (( concat meta.name "-testflight-separate" ))
 
