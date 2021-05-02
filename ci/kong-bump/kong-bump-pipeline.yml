@@ -52,13 +52,14 @@ resources:
 
 jobs:
   - name: detect-kong
+    serial: true
     plan:
       - in_parallel:
           - get: kong-gh-release
             trigger: true
             params:
-              globs: []
               include_source_tarball: true
+              globs: []
           - get: kong-boshrelease-master
           - get: gk-automation
           - get: gk-ops-image
@@ -103,7 +104,7 @@ jobs:
         input_mapping:
           boshrelease-repo: repo-committed
         params:
-          S3_ACCESS_KEY_ID: ((aws-access-key))
+          S3_ACCESS_KEY_ID:     ((aws-access-key))
           S3_SECRET_ACCESS_KEY: ((aws-secret-key))
 
       - task: git-commit
@@ -129,7 +130,7 @@ jobs:
         image: gk-ops-image
         file: gk-automation/tasks/boshrelease/compose-pr.yml
         params:
-          ARTIFACT_HUMAN_NAME: Kong
+          ARTIFACT_HUMAN_NAME:    Kong
           RELEASE_NOTES_URL_TMPL: https://github.com/Kong/kong/blob/${artifact_version}/CHANGELOG.md
 
       - task: submit-pr
@@ -159,7 +160,7 @@ jobs:
         file: gk-automation/tasks/boshrelease/depl-manifest-release-bump.yml
         input_mapping:
           bosh-io-release: bpm-bosh-io-release
-          repo: kong-boshrelease-master
+          repo:            kong-boshrelease-master
         params:
           RELEASE_NAME:  bpm
           MANIFEST_PATH: deploy/gk-kong.yml
