@@ -151,9 +151,9 @@ releases:
   url: https://s3.eu-west-3.amazonaws.com/gk-kong-boshrelease/compiled-releases/gk-kong/gk-kong-2.1.0-ubuntu-bionic-0.28-20210501-084609-019339587-20210501084612.tgz
   version: 2.1.0
 - name: bpm
-  sha1: 0d48aa01a65b947b97570234eb2401e821a8bd35
-  url: https://bosh.io/d/github.com/cloudfoundry/bpm-release?v=1.1.15
-  version: 1.1.15
+  sha1: 492f181f4efa08c5f0b45d22cbe54f0a20edf99e
+  url: https://bosh.io/d/github.com/cloudfoundry/bpm-release?v=1.1.16
+  version: 1.1.16
 - name: postgres
   sha1: e44bbe8f8a7cdde1cda67b202e399a239d104db6
   url: https://bosh.io/d/github.com/cloudfoundry/postgres-release?v=43
