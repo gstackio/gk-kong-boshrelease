@@ -58,26 +58,23 @@ meta:
 
   bosh:
     stemcell:
-      cpi: "warden-boshlite"
+      cpi: warden-boshlite
     deployment-no-tls:   (( concat meta.name "-testflight-no-tls" ))
     deployment-separate: (( concat meta.name "-testflight-separate" ))
 
   slack:
     webhook:       ((slack-webhook))
     username:      ((slack-username))
-    icon:          ((slack-icon-url))
-    channel:       (( concat "#" meta.name "-boshrelease" ))
-    blob_success:  '(( concat ": New version of  was detected, and updated in master. <" meta.url "/teams//pipelines/| Cut a new release?>" ))'
-    blob_failure:  '(( concat ": :airplane_arriving: <" meta.url "/teams//pipelines//jobs//builds/| Failed to update the blob for >" ))'
+    channel:       oss-pipelines-notifications
+
+
 
 jobs:
   - name: testflight
     plan:
-    - (( inline ))
-    - do:
       - (( append ))
 
-      - task: testflight
+      - task: testflight-no-tls
         image: image
         config:
           platform: linux
@@ -100,7 +97,7 @@ jobs:
             MANIFEST_VARS:        (( grab meta.manifest.vars-no-tls ))
             MANIFEST_OP_PATHS:    (( grab meta.manifest.operator_file_paths-no-tls))
 
-      - task: testflight
+      - task: testflight-separate
         image: image
         config:
           platform: linux
