@@ -53,6 +53,7 @@ resources:
 jobs:
   - name: detect-kong
     serial: true
+    serial_groups: [ detect ]
     plan:
       - in_parallel:
           - get: kong-gh-release
