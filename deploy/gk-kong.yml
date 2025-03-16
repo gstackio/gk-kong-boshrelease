@@ -155,9 +155,9 @@ releases:
   url: https://bosh.io/d/github.com/cloudfoundry/bpm-release?v=1.4.16
   version: 1.4.16
 - name: postgres
-  sha1: f130ebc9c4abf023e955e2fc7b7ea3bb6a64682a
-  url: https://bosh.io/d/github.com/cloudfoundry/postgres-release?v=53
-  version: "53"
+  sha1: e5655af2b766900cd65f859703d7fdce44805a9b
+  url: https://bosh.io/d/github.com/cloudfoundry/postgres-release?v=53.0.3
+  version: 53.0.3
 - name: os-conf
   sha1: 9276888fc54d22950045a247d348142757ae9129
   url: https://bosh.io/d/github.com/cloudfoundry/os-conf-release?v=22.3.1
